@@ -18,29 +18,27 @@ object Main extends scala.App {
   val gsm_id = "GSM1698570"
   println("---")
 
-  val f = FetchGEO("")
+  val f = FetchGEO("0a1d74f32382b8a154acacc3a024bdce3709")
 
   import io.circe.Json
   import io.circe.generic.JsonCodec
   import io.circe.syntax._
   import io.circe.generic.extras._
 
-  /**
-    * GSM1698568
-    * GSM1698570
-    * GSM2927683
-    * GSM2927750
-    * GSM2042593
-    * GSM2042596
-    */
+  val gsms = Seq(
+  "GSM1698568",
+  "GSM1698570",
+   "GSM2927683",
+   "GSM2927750",
+    "GSM2042593",
+    "GSM2042596"
+  )
+  for(g <- gsms){
+    val gsm = f.getGSM(g)//.unsafeRunSync()
+    println(s"---------------------------$g--------------------------")
+    BlackWhite.pprintln(gsm, 1000, 1000)
+  }
 
-  val txt = f.get_gsm_text("GSM1698568")//.unsafeRunSync()
-  println(txt)
-  println("=====================")
-
-  val parsed = SoftParser.parseSOFT(txt)
-  BlackWhite.pprintln(parsed)
-  BlackWhite.pprintln(parsed.get)
   /*
   f.get_gsm_json("GSM1698568").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
   f.get_gsm_json("GSM1698568").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)

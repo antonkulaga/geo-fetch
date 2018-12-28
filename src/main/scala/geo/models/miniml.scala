@@ -1,8 +1,6 @@
-package geo.fetch
+package geo.models
 
 import io.circe.Json
-import io.circe.generic.JsonCodec
-import io.circe.syntax._
 import io.circe.generic.extras._
 
 object MINiML {

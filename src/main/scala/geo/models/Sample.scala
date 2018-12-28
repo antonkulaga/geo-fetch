@@ -1,81 +1,95 @@
-package geo.fetch
-import cats.effect.IO
-import io.circe.generic.auto._
-import hammock._
-import hammock.marshalling._
-import hammock.jvm.Interpreter
-import hammock.circe.implicits._
-import io.circe._
-import Xml._
-import fastparse.Parsed
-import geo.models.GSM
-import hammock.Entity.StringEntity
-import io.circe.Decoder.Result
-import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
+package geo.models
+object GSM {
 
-import scala.xml.Elem
+  def apply(gsm: String, mp: Map[String, Seq[String]]): GSM = {
 
-case class FetchGEO(apiKey: String = "") extends FetchJSON with FetchGeoJSON {
-  implicit val client: CloseableHttpClient = HttpClientBuilder.create().disableCookieManagement().disableContentCompression().build()
-  implicit val interpreter: Interpreter[IO] = new Interpreter(client)
+    def prop(property: String, delimiter: String = "\n", default: String = "") = mp(property) match {
+      case seq if seq.isEmpty => default
+      case seq => seq.reduce(_ + delimiter + _)
+    }
 
-}
-
-trait FetchGeoJSON extends FetchGeoXML {
+    def propMap(property: String): Map[String, String] = mp(property).filter(i=>i.contains(":")).map{ v=>
+      v.substring(0, v.indexOf(":")).trim -> v.substring(v.indexOf(":")+1).trim
+    }.toMap
 
 
-  //def getGSM(gsm: String): IO[Result[MINiML.Container]] = get_gsm_json(gsm).map(_.as[MINiML.Container])
+    val lib = Library(
+      prop("Sample_library_strategy"),
+      prop("Sample_library_selection"),
+      prop("Sample_library_source")
+    )
 
-  def get_query_json(target: String, id: String): IO[Json] = get_query_xml(target, id).map(_.toJson)
-  def get_gse_json(id: String): IO[Json] = get_query_json("gse", id)
-  def get_gsm_json(id: String): IO[Json] = get_query_json("gsm", id)
+    val extraction = Extraction(
+      prop("Sample_source_name_ch1"),
+      prop("Sample_molecule_ch1"),
+      prop("Sample_extract_protocol_ch1"),
+      prop("Sample_data_processing")
+    )
+    val gsm = prop("Sample_geo_accession")
+    val organism = Organism(
+       prop("Sample_organism_ch1"),
+      prop("Sample_taxid_ch1")
+    )
+    val title = prop("Sample_title")
+    val sequencer = prop("Sample_instrument_model")
+    val status = Status(
+      prop("Sample_submission_date"),
+      prop("Sample_last_update_date")
+    )
+    val gse = prop("Sample_series_id")
 
-  def get_query_soft(target: String, id: String): IO[Json] = get_query_xml(target, id).map(_.toJson)
-}
+    //val gpl = prop("Sample_platform_id", ";")
+    val tp = prop("Sample_type")
 
-trait FetchGeoXML extends Fetch {
+    val characteristics = Characteristics(propMap("Sample_characteristics_ch1"))
 
 
-  def get_query(id: String, target: String, form: String, view: String = "full"): IO[String] =
-    Hammock
-      .request(Method.GET, uri"https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${id}&targ=${target}&form=${form}&view=${view}${apiKeyAddition}", Map()) // In the `request` method, you describe your HTTP request
-      .map{r=> r.entity match {
-          case hammock.Entity.StringEntity(body, contentType) => body
-          case other => throw new Exception(s"request ${r.toString} gave non string entity ${other}!")
-        }
-      }
-      .exec[IO]
+    val relations = Relations(propMap("Sample_relation"))
 
-  def get_query_xml(id: String, target: String): IO[Elem] = get_query(id, target, "xml", "full").map(r=> scala.xml.XML.loadString(r))
-
-  def get_query_text(id: String, target: String): String = {
-    val form = "text"
-    val view = "full"
-    requests.get(s"https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${id}&targ=${target}&form=${form}&view=${view}${apiKeyAddition}").text()
+    GSM(gsm, gse, title, tp, organism, sequencer, characteristics, lib, extraction, relations, status)
   }
 
-  def get_gse_xml(id: String): IO[Elem] = get_query_xml(id, "gse")
-  def get_gsm_xml(id: String): IO[Elem] = get_query_xml(id, "gsm")
-
-  def getSOFT(id: String, target: String = "self"): Parsed[Seq[(String, String, Map[String, Seq[String]])]] =  SoftParser.parseSOFT(get_query_text(id, target))
-  //def get_gse_text(id: String) = GSM(getSOFT(id, "gse"))
-
-  def getGSM(id: String): GSM = {
-    val result: Seq[(String, String, Map[String, Seq[String]])] = getSOFT(id, "gsm").get.value
-    result.map{ case (_, gsm, seq)=> GSM(gsm, seq)}.head
-  }
-
-  /**
-    *
-    * ^	caret lines	entity indicator line
-    * !	bang lines	entity attribute line
-    * #	hash lines	data table header description line
-    * n/a	data lines	data table row
-    */
-  //protected def parseGSM(text: String) = text.split("!")
-
 }
 
+case class Extraction(
+                     source: String,
+                     molecule: String,
+                     protocol: String,
+                     processing: String
+                     )
+
+case class Organism(
+                   name: String,
+                   taxid: String
+                   )
+
+case class Relations(relations: Map[String, String]) {
+  lazy val bioSample: Option[String] = relations.get("BioSample")
+  lazy val srx: Option[String] = relations.get("SRX").orElse(relations.get("SRA").filter(_.contains("SRX")))
+  lazy val sra: Option[String] = relations.get("SRA")
+}
+
+case class Library(
+                  strategy: String,
+                  selection: String,
+                  source: String
+
+                  )
+
+case class Status(submitted: String, updated: String)
+
+case class Characteristics(characteristics: Map[String, String]) {
+
+  def ageRelated = characteristics.filter(_._1.toLowerCase.contains("age"))
+}
+
+case class GSM(id: String, gse: String, title: String,
+               sampleType: String,
+               organism: Organism,
+               sequencer: String,
+               characteristics: Characteristics,
+               library: Library, extraction: Extraction,
+               relations: Relations, status: Status)
 /*
 ^SAMPLE = GSM1698570
 !Sample_title = Biochain_Adult_Kidney
