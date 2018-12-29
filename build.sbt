@@ -29,6 +29,7 @@ resolvers += Resolver.bintrayRepo("comp-bio-aging", "main")
 addCompilerPlugin(("org.scalamacros" %% "paradise" % "2.1.1").cross(CrossVersion.full))
 
 lazy val circeVersion = "0.10.0"
+lazy val kantanVersion = "0.5.0"
 
 libraryDependencies ++= Seq(
  "org.typelevel" %% "cats-core" % "1.5.0",
@@ -44,6 +45,10 @@ libraryDependencies ++= Seq(
  "io.circe" %% "circe-generic-extras" % circeVersion,
  "io.circe" %% "circe-parser" % circeVersion,
  "com.lihaoyi" %% "requests" % "0.1.4",
+ // Automatic type class instances derivation.
+ "com.nrinaudo" %% "kantan.csv-java8" % kantanVersion,
+ "com.nrinaudo" %% "kantan.csv-cats" % kantanVersion,
+ "com.nrinaudo" %% "kantan.csv-generic" % kantanVersion,
  "org.scalatest" %% "scalatest" % "3.0.5" % Test
 )
 

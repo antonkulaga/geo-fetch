@@ -9,6 +9,7 @@ import better.files._
 import cats.implicits._
 import com.monovore.decline._
 import geo.fetch.FetchGEO
+import geo.models.RunInfo
 import wvlet.log.LogSupport
 import pprint.PPrinter.BlackWhite
 
@@ -49,11 +50,26 @@ object Main extends scala.App {
     //BlackWhite.pprintln(gsm, 1000, 1000)
     gsm.relations.sra match {
       case Some(v) if v.contains("SRA") =>
-        BlackWhite.pprintln(f.fetch_sra_runinfo("SRR2014240"), 1000, 1000)
-        f.fetch_sra_json()
+        //BlackWhite.pprintln(f.fetch_sra_runinfo("SRR2014240"), 1000, 1000)
+        //f.fetch_sra_xml(v)
+
+        BlackWhite.pprintln(f.fetch_sra_runinfo(v), 1000, 1000)
+
       case Some(v) if v.contains("SRX") =>
       println(s"||||||||||||||||${v}|||||||||||||||||||||||||||||||||||||")
-      // BlackWhite.pprintln(f.fetch_sra_runinfo("SRR2014240"), 1000, 1000)
+      //val x = f.fetch_sra_xml(v).unsafeRunSync()
+        val info = f.fetch_sra_runinfo(v)
+        import kantan.csv._
+        import kantan.csv.ops._
+                BlackWhite.pprintln(info, 1000, 1000)
+        println(s"+++++_${info.count(_ =='\n')}_++++++")
+
+        for(r <- RunInfo.fromCSV(info)) {
+          BlackWhite.pprintln(r, 1000, 1000)
+          import io.circe.generic.auto._
+          val js = r.asJson
+          BlackWhite.pprintln(js, 1000, 1000)
+        }
     }
   }
 

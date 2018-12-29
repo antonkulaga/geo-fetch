@@ -19,7 +19,7 @@ object SoftParser {
   def softMap[_ :P]: P[Seq[(String, String, Map[String, Seq[String]])]] = (entity ~ properties).rep
 
 
-  def parseSOFT(text: String) = {
+  def parseSOFT(text: String): Parsed[Seq[(String, String, Map[String, Seq[String]])]] = {
     parse(text, softMap(_))
   }
 }

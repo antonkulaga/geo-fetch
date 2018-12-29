@@ -1,4 +1,9 @@
 package geo.models
+
+import io.circe.generic.JsonCodec
+import kantan.csv._         // All kantan.csv types.
+import kantan.csv.ops._     // Enriches types with useful methods.
+
 object GSM {
 
   def apply(gsm: String, mp: Map[String, Seq[String]]): GSM = {
@@ -72,12 +77,20 @@ case class Relations(relations: Map[String, String]) {
   lazy val sra: Option[String] = relations.get("SRA").map(getTerm)
 }
 
-case class Library(
+object Library{
+
+/*
+  implicit val model1Decoder: HeaderDecoder[Library] =
+    HeaderDecoder.decoder("LibraryName","LibraryStrategy","LibrarySelection","LibrarySource","LibraryLayout"
+  )(Library.apply)
+*/
+}
+@JsonCodec case class Library(
                   strategy: String,
                   selection: String,
                   source: String
-
                   )
+
 
 case class Status(submitted: String, updated: String)
 
