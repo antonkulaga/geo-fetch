@@ -86,6 +86,12 @@ trait FetchXML extends Fetch {
   def fetch_pmc_xml(id: String): IO[Elem] = fetch_xml("pmc", id)
   def fetch_snp_xml(id: String): IO[Elem] = fetch_xml("snp", id)
   def fetch_sra_xml(id: String): IO[Elem] = fetch_xml("sra", id)
+  def fetch_sra_runinfo(id: String): String = {
+    val db = "sra"
+    val returnType = "runinfo"
+    requests.get(s"http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=${db}&rettype=${returnType}&term=${id}${apiKeyAddition}").text()
+  }
+
   def fetch_structure_xml(id: String): IO[Elem] = fetch_xml("structure", id)
   def fetch_taxonomy_xml(id: String): IO[Elem] = fetch_xml("taxonomy", id)
   def fetch_unigene_xml(id: String): IO[Elem] = fetch_xml("unigene", id)
@@ -97,9 +103,9 @@ trait FetchXML extends Fetch {
     * @return
     */
 
-  def fetch_xml(db: String, id: String): IO[Elem] = {
+  def fetch_xml(db: String, id: String, returnType: String = "fullxml"): IO[Elem] = {
     Hammock
-      .request(Method.GET, uri"http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=${db}&rettype=fullxml&term=${id}${apiKeyAddition}", Map()) // In the `request` method, you describe your HTTP request
+      .request(Method.GET, uri"http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=${db}&rettype=${returnType}&term=${id}${apiKeyAddition}", Map()) // In the `request` method, you describe your HTTP request
       .map{r=> r.entity match {
         case hammock.Entity.StringEntity(body, _) => body
         case other => throw new Exception(s"request ${r.toString} gave non string entity ${other}!")

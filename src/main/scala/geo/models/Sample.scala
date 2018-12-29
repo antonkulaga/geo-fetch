@@ -64,9 +64,12 @@ case class Organism(
                    )
 
 case class Relations(relations: Map[String, String]) {
+
+  private def getTerm(str: String) = str.substring(str.indexOf("term=") + "term=".length)
+
   lazy val bioSample: Option[String] = relations.get("BioSample")
-  lazy val srx: Option[String] = relations.get("SRX").orElse(relations.get("SRA").filter(_.contains("SRX")))
-  lazy val sra: Option[String] = relations.get("SRA")
+  lazy val srx: Option[String] = relations.get("SRX").map(getTerm).orElse(sra.filter(_.contains("SRX")))
+  lazy val sra: Option[String] = relations.get("SRA").map(getTerm)
 }
 
 case class Library(

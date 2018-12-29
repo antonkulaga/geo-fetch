@@ -15,10 +15,20 @@ import pprint.PPrinter.BlackWhite
 object Main extends scala.App {
   import geo.fetch._
   import io.circe.Xml._
+
+  import geo.fetch._
   val gsm_id = "GSM1698570"
-  println("---")
 
   val f = FetchGEO("0a1d74f32382b8a154acacc3a024bdce3709")
+  /*
+  f.get_gsm_json("GSM1698568").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
+  f.get_gsm_json("GSM1698568").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
+  f.get_gsm_json("GSM1698570").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
+  f.get_gsm_json("GSM2927683").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
+  f.get_gsm_json("GSM2927750").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
+  f.get_gsm_json("GSM2042593").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
+  f.get_gsm_json("GSM2042596").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
+   */
 
   import io.circe.Json
   import io.circe.generic.JsonCodec
@@ -36,8 +46,17 @@ object Main extends scala.App {
   for(g <- gsms){
     val gsm = f.getGSM(g)//.unsafeRunSync()
     println(s"---------------------------$g--------------------------")
-    BlackWhite.pprintln(gsm, 1000, 1000)
+    //BlackWhite.pprintln(gsm, 1000, 1000)
+    gsm.relations.sra match {
+      case Some(v) if v.contains("SRA") =>
+        BlackWhite.pprintln(f.fetch_sra_runinfo("SRR2014240"), 1000, 1000)
+        f.fetch_sra_json()
+      case Some(v) if v.contains("SRX") =>
+      println(s"||||||||||||||||${v}|||||||||||||||||||||||||||||||||||||")
+      // BlackWhite.pprintln(f.fetch_sra_runinfo("SRR2014240"), 1000, 1000)
+    }
   }
+
 
   /*
   f.get_gsm_json("GSM1698568").unsafeRunSync().as[MINiML.Container].map(_.content.Sample.Channel.Characteristics)
