@@ -1,23 +1,13 @@
 package geo.models
 
-import io.circe.{Decoder, Json}
-import io.circe.generic.JsonCodec
-import kantan.csv._         // All kantan.csv types.
-import kantan.csv.ops._     // Enriches types with useful methods.
-import io.circe.generic.JsonCodec
-import shapeless.record._
-import shapeless.syntax.singleton._
+import kantan.csv._
+import kantan.csv.ops._
 import shapeless._
-import shapeless.Poly1
-import io.circe.syntax._
+import shapeless.record._
+import io.circe.generic.JsonCodec     // Enriches types with useful methods.
 
 
 
-
-case class RunLibrary(
-                                  LibraryName: String,	LibraryStrategy: String,	LibrarySelection: String,
-                                  LibrarySource: String,	LibraryLayout: String
-                             )
 object RunLibrary{
 
   implicit val runLibraryDecoder: HeaderDecoder[RunLibrary] =
@@ -26,13 +16,18 @@ object RunLibrary{
 
 }
 
+@JsonCodec case class RunLibrary(
+                                  LibraryName: String,	LibraryStrategy: String,	LibrarySelection: String,
+                                  LibrarySource: String,	LibraryLayout: String
+                                )
+
 object RunStats {
   implicit val runStatsDecoder: HeaderDecoder[RunStats] =
     HeaderDecoder.decoder("spots","bases","spots_with_mates","avgLength","size_MB"
     )(RunStats.apply)
 }
 
-case class RunStats(
+@JsonCodec case class RunStats(
                                 spots: Long,
                                 bases: Long,
                                 spots_with_mates: Long,
@@ -47,7 +42,7 @@ object GeneralSampleInfo {
     )(GeneralSampleInfo.apply)
 }
 
-case class GeneralSampleInfo(
+@JsonCodec case class GeneralSampleInfo(
                               Platform: String,
                               Model: String,
                               SRAStudy: String,
@@ -68,7 +63,7 @@ object SubjectInfo {
     )(SubjectInfo.apply)
 }
 
-case class SubjectInfo(
+@JsonCodec case class SubjectInfo(
                                    Subject_ID: String,
                                    Sex: String,
                                    Disease: String,
@@ -89,7 +84,7 @@ object MainRunInfo {
     )(MainRunInfo.apply)
 }
 
-case class MainRunInfo(
+@JsonCodec case class MainRunInfo(
                         Run: String,
                         ReleaseDate: String,
                         LoadDate: String,
@@ -113,7 +108,7 @@ object OtherRunInfo {
       "ReadHash"
     )(OtherRunInfo.apply)
 }
-case class OtherRunInfo(
+@JsonCodec case class OtherRunInfo(
                          InsertSize: String,
                          InsertDev: String,
                          g1k_pop_code: String,
@@ -126,7 +121,7 @@ case class OtherRunInfo(
                          RunHash: String,
                          ReadHash: String
                        )
-case class RunInfo(
+@JsonCodec case class RunInfo(
                     run: MainRunInfo,
                     stats: RunStats,
                     library: RunLibrary,
@@ -135,6 +130,7 @@ case class RunInfo(
                     other: OtherRunInfo
                     )
 {
+  /*
   lazy val asRecord = RunInfo.labeledGen.to(this)
   def asMap = asRecord.toMap
   def keys = asRecord.keys
@@ -143,6 +139,8 @@ case class RunInfo(
   lazy val asGen = RunInfo.gen.to(this)
   def asList = asGen.toList
   def asStringList = asList.map(_.toString)
+  */
+
 
 }
 /*
@@ -213,9 +211,9 @@ object RunInfo {
 
   def asMap(info: RunInfo) = labeledGen.to(info).toMap
 
-  def fromCSV(str: String): List[RunInfo] = {
+  def fromCSV(str: String, separator: Char = ','): List[RunInfo] = {
     val s = str.replaceAll("\n+", "\n")
-    s.asCsvReader[RunInfo](rfc.withHeader).map{
+    s.asCsvReader[RunInfo](rfc.withHeader.withCellSeparator(separator)).map{
       case Right(r)=> r
       case Left(e) => throw new Exception(s"Cannot parse runinfo with error ${e}!")
     }.toList

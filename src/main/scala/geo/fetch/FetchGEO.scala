@@ -24,7 +24,7 @@ case class FetchGEO(apiKey: String = "") extends FetchJSON with FetchGeoJSON {
 trait FetchGeoJSON extends FetchGeoXML {
 
 
-  //def getGSM(gsm: String): IO[Result[MINiML.Container]] = get_gsm_json(gsm).map(_.as[MINiML.Container])
+  //def fetchGSM(gsm: String): IO[Result[MINiML.Container]] = get_gsm_json(gsm).map(_.as[MINiML.Container])
 
   def get_query_json(target: String, id: String): IO[Json] = get_query_xml(target, id).map(_.toJson)
   def get_gse_json(id: String): IO[Json] = get_query_json("gse", id)

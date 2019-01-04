@@ -1,8 +1,6 @@
 package geo.models
 
-import io.circe.generic.JsonCodec
-import kantan.csv._         // All kantan.csv types.
-import kantan.csv.ops._     // Enriches types with useful methods.
+import io.circe.generic.JsonCodec     // Enriches types with useful methods.
 
 object GSM {
 
@@ -56,19 +54,19 @@ object GSM {
 
 }
 
-case class Extraction(
+@JsonCodec case class Extraction(
                      source: String,
                      molecule: String,
                      protocol: String,
                      processing: String
                      )
 
-case class Organism(
+@JsonCodec case class Organism(
                    name: String,
                    taxid: String
                    )
 
-case class Relations(relations: Map[String, String]) {
+@JsonCodec case class Relations(relations: Map[String, String]) {
 
   private def getTerm(str: String) = str.substring(str.indexOf("term=") + "term=".length)
 
@@ -92,14 +90,14 @@ object Library{
                   )
 
 
-case class Status(submitted: String, updated: String)
+@JsonCodec case class Status(submitted: String, updated: String)
 
-case class Characteristics(characteristics: Map[String, String]) {
+@JsonCodec case class Characteristics(characteristics: Map[String, String]) {
 
   def ageRelated = characteristics.filter(_._1.toLowerCase.contains("age"))
 }
 
-case class GSM(id: String, gse: String, title: String,
+@JsonCodec case class GSM(id: String, gse: String, title: String,
                sampleType: String,
                organism: Organism,
                sequencer: String,
