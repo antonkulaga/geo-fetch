@@ -42,8 +42,8 @@ trait FetchGeoJSON extends FetchGeoXML with FetchJSON {
   def getGSM(id: String, withRunInfo: Boolean = true): GSM = {
     val result: Seq[(String, String, Map[String, Seq[String]])] = getSOFT(id, "gsm").get.value
     val gsm = result.map{ case (_, gsm, seq)=> GSM(gsm, seq)}.head
-    if(withRunInfo && gsm.relations.srx.nonEmpty)  {
-      val runs =  getSRA(gsm.relations.srx.get)
+    if(withRunInfo && gsm.srx.nonEmpty)  {
+      val runs =  getSRA(gsm.srx.get)
       gsm.copy(runs = runs)
     } else gsm
   }

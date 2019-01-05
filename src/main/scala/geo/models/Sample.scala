@@ -44,10 +44,10 @@ object GSM {
     //val gpl = prop("Sample_platform_id", ";")
     val tp = prop("Sample_type")
 
-    val characteristics = Characteristics(propMap("Sample_characteristics_ch1"))
+    val characteristics = propMap("Sample_characteristics_ch1")
 
 
-    val relations = Relations(propMap("Sample_relation"))
+    val relations = propMap("Sample_relation")
 
     GSM(gsm, series, title, tp, organism, sequencer, characteristics, lib, extraction, relations, status, Nil)
   }
@@ -65,7 +65,7 @@ object GSM {
                    name: String,
                    taxid: String
                    )
-
+/*
 @JsonCodec case class Relations(relations: Map[String, String]) {
 
   private def getTerm(str: String) = str.substring(str.indexOf("term=") + "term=".length)
@@ -74,6 +74,7 @@ object GSM {
   lazy val srx: Option[String] = relations.get("SRX").map(getTerm).orElse(sra.filter(_.contains("SRX")))
   lazy val sra: Option[String] = relations.get("SRA").map(getTerm)
 }
+*/
 
 object Library{
 
@@ -92,10 +93,12 @@ object Library{
 
 @JsonCodec case class Status(submitted: String, updated: String)
 
+/*
 @JsonCodec case class Characteristics(characteristics: Map[String, String]) {
 
   def ageRelated = characteristics.filter(_._1.toLowerCase.contains("age"))
 }
+*/
 
 trait GSMLike {
   def id: String
@@ -104,20 +107,27 @@ trait GSMLike {
   def sampleType: String
   def organism: Organism
   def sequencer: String
-  def characteristics: Characteristics
+  def characteristics: Map[String, String]//Characteristics
   def library: Library
   def extraction: Extraction
-  def relations: Relations
+  def relations: Map[String, String]
   def status: Status
+
+
+  private def getTerm(str: String) = str.substring(str.indexOf("term=") + "term=".length)
+
+  lazy val bioSample: Option[String] = relations.get("BioSample")
+  lazy val srx: Option[String] = relations.get("SRX").map(getTerm).orElse(sra.filter(_.contains("SRX")))
+  lazy val sra: Option[String] = relations.get("SRA").map(getTerm)
 }
 
 @JsonCodec case class GSM(id: String, gse: List[String], title: String,
                sampleType: String,
                organism: Organism,
                sequencer: String,
-               characteristics: Characteristics,
+               characteristics: Map[String, String], //Characteristics
                library: Library, extraction: Extraction,
-               relations: Relations, status: Status, runs: List[RunInfo]) extends GSMLike
+               relations: Map[String, String], status: Status, runs: List[RunInfo]) extends GSMLike
 
 /*
 ^SAMPLE = GSM1698570

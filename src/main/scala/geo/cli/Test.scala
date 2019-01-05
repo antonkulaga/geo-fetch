@@ -1,5 +1,5 @@
 package geo.cli
-
+/*
 import java.nio.file.{Path, Paths}
 
 import wvlet.log.LogSupport
@@ -95,3 +95,4 @@ object Test //extends scala.App
   BlackWhite.pprintln(f.get_gsm_json("GSM2042596").unsafeRunSync().as[MINiML.Container])
   */
 }
+*/
