@@ -39,7 +39,7 @@ object GSM {
       prop("Sample_submission_date"),
       prop("Sample_last_update_date")
     )
-    val gse = prop("Sample_series_id")
+    val series = prop("Sample_series_id").split("\n").toList
 
     //val gpl = prop("Sample_platform_id", ";")
     val tp = prop("Sample_type")
@@ -49,7 +49,7 @@ object GSM {
 
     val relations = Relations(propMap("Sample_relation"))
 
-    GSM(gsm, gse, title, tp, organism, sequencer, characteristics, lib, extraction, relations, status)
+    GSM(gsm, series, title, tp, organism, sequencer, characteristics, lib, extraction, relations, status, Nil)
   }
 
 }
@@ -97,13 +97,28 @@ object Library{
   def ageRelated = characteristics.filter(_._1.toLowerCase.contains("age"))
 }
 
-@JsonCodec case class GSM(id: String, gse: String, title: String,
+trait GSMLike {
+  def id: String
+  def gse: List[String]
+  def title: String
+  def sampleType: String
+  def organism: Organism
+  def sequencer: String
+  def characteristics: Characteristics
+  def library: Library
+  def extraction: Extraction
+  def relations: Relations
+  def status: Status
+}
+
+@JsonCodec case class GSM(id: String, gse: List[String], title: String,
                sampleType: String,
                organism: Organism,
                sequencer: String,
                characteristics: Characteristics,
                library: Library, extraction: Extraction,
-               relations: Relations, status: Status)
+               relations: Relations, status: Status, runs: List[RunInfo]) extends GSMLike
+
 /*
 ^SAMPLE = GSM1698570
 !Sample_title = Biochain_Adult_Kidney

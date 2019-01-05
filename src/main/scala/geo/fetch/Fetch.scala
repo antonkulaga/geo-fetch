@@ -7,6 +7,8 @@ import hammock.jvm.Interpreter
 import hammock.circe.implicits._
 import io.circe._
 import Xml._
+import geo.models.RunInfo
+
 import scala.xml.Elem
 
 trait FetchJSON extends FetchXML {
@@ -89,7 +91,14 @@ trait FetchXML extends Fetch {
   def fetch_sra_runinfo(id: String): String = {
     val db = "sra"
     val returnType = "runinfo"
-    requests.get(s"http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=${db}&rettype=${returnType}&term=${id}${apiKeyAddition}").text()
+    requests.get(s"http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=${db}&rettype=${returnType}&term=${id}${apiKeyAddition}")
+      .text()
+      .replace("\r\n", "\n")
+  }
+
+  def getSRA(id: String): List[RunInfo] = {
+    val run_str = fetch_sra_runinfo(id: String)
+    RunInfo.fromCSV(run_str)
   }
 
   def fetch_structure_xml(id: String): IO[Elem] = fetch_xml("structure", id)

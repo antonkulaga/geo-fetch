@@ -20,8 +20,8 @@ trait CommandSra extends FetchCommand {
   def fetchSRA(sra: String, key: String, format: String = "runinfo", o: String = ""): Unit = {
     val f = FetchGEO(key)
     format.toLowerCase match {
-      case "soft" | "txt" | "text" =>
-        val run_str = f.fetch_sra_runinfo(sra).replace("\n\n", "\n")
+      case "soft" | "txt" | "text" | "runinfo" =>
+        val run_str = f.fetch_sra_runinfo(sra).replace("\r\n", "\n")
 
         import kantan.csv._
         import kantan.csv.ops._
@@ -44,7 +44,7 @@ trait CommandSra extends FetchCommand {
       case "xml" =>
         val result = f.fetch_sra_xml(sra).unsafeRunSync().toString
         printOrSave(result, o)
-      case _ => this.error("unknown ")
+      case _ => this.error(s"unknown format ${format} for ${sra} with output ${o}")
 
     }
   }

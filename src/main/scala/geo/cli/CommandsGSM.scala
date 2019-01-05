@@ -12,7 +12,9 @@ import geo.models.{GSM, RunInfo}
 import wvlet.log.LogSupport
 import pprint.PPrinter.BlackWhite
 import io.circe.syntax._
-
+import kantan.csv._
+import kantan.csv.ops._
+import kantan.csv.generic._
 class CommandsGSM extends FetchCommand with CommandSra {
 
   protected lazy val gsm = Opts.argument[String]("gsm")
@@ -24,12 +26,10 @@ class CommandsGSM extends FetchCommand with CommandSra {
 
   def fetchGSM(gsm: String, key: String, o: String, runs: String): Unit = {
     val f =  FetchGEO(key)
-    val g: GSM = f.getGSM(gsm)
+    val g: GSM = f.getGSM(gsm, true)
     printOrSave(g.asJson.spaces2, o)
-    g.relations.srx match {
-      case Some(srx) => fetchSRA(srx, key)
-      case None =>
-        error(s"cannot find runs for ${gsm}")
+    if(runs!=""){
+      printOrSave(g.runs.asJson.spaces2, runs)
     }
   }
 

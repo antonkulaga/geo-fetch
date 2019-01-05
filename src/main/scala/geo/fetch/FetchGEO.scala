@@ -15,13 +15,13 @@ import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
 
 import scala.xml.Elem
 
-case class FetchGEO(apiKey: String = "") extends FetchJSON with FetchGeoJSON {
+case class FetchGEO(apiKey: String = "") extends FetchGeoJSON {
   implicit val client: CloseableHttpClient = HttpClientBuilder.create().disableCookieManagement().disableContentCompression().build()
   implicit val interpreter: Interpreter[IO] = new Interpreter(client)
 
 }
 
-trait FetchGeoJSON extends FetchGeoXML {
+trait FetchGeoJSON extends FetchGeoXML with FetchJSON {
 
 
   //def fetchGSM(gsm: String): IO[Result[MINiML.Container]] = get_gsm_json(gsm).map(_.as[MINiML.Container])
@@ -31,6 +31,22 @@ trait FetchGeoJSON extends FetchGeoXML {
   def get_gsm_json(id: String): IO[Json] = get_query_json("gsm", id)
 
   def get_query_soft(target: String, id: String): IO[Json] = get_query_xml(target, id).map(_.toJson)
+
+
+  def getSOFT(id: String, target: String = "self"): Parsed[Seq[(String, String, Map[String, Seq[String]])]] =  {
+    val txt = get_query_text(id, target).replace("\r\n", "\n")
+    SoftParser.parseSOFT(txt)
+  }
+  //def get_gse_text(id: String) = GSM(getSOFT(id, "gse"))
+
+  def getGSM(id: String, withRunInfo: Boolean = true): GSM = {
+    val result: Seq[(String, String, Map[String, Seq[String]])] = getSOFT(id, "gsm").get.value
+    val gsm = result.map{ case (_, gsm, seq)=> GSM(gsm, seq)}.head
+    if(withRunInfo && gsm.relations.srx.nonEmpty)  {
+      val runs =  getSRA(gsm.relations.srx.get)
+      gsm.copy(runs = runs)
+    } else gsm
+  }
 }
 
 trait FetchGeoXML extends Fetch {
@@ -56,14 +72,6 @@ trait FetchGeoXML extends Fetch {
 
   def get_gse_xml(id: String): IO[Elem] = get_query_xml(id, "gse")
   def get_gsm_xml(id: String): IO[Elem] = get_query_xml(id, "gsm")
-
-  def getSOFT(id: String, target: String = "self"): Parsed[Seq[(String, String, Map[String, Seq[String]])]] =  SoftParser.parseSOFT(get_query_text(id, target))
-  //def get_gse_text(id: String) = GSM(getSOFT(id, "gse"))
-
-  def getGSM(id: String): GSM = {
-    val result: Seq[(String, String, Map[String, Seq[String]])] = getSOFT(id, "gsm").get.value
-    result.map{ case (_, gsm, seq)=> GSM(gsm, seq)}.head
-  }
 
   /**
     *
