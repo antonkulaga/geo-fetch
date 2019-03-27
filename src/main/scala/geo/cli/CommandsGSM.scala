@@ -16,17 +16,23 @@ class CommandsGSM extends FetchCommand with CommandSra {
   protected lazy val runs = Opts.option[String](long = "runs", short = "r", help = "Where to put SRA output").withDefault("")
   //protected lazy val essential = Opts.option[String](long = "essential", short = "e", help = "Only essential information").withDefault("")
 
-
-
   def fetchGSM(gsm: String, key: String, o: String, runs: String, essential: Boolean): Unit = {
     val f =  FetchGEO(key)
     val g: GSM = f.getGSM(gsm, true)
     printOrSave(g.asJson.spaces2, o)
     runs match {
+      case p if g.library.strategy.toLowerCase == "bisulfite-seq" =>
+        printOrSave(g.runs.asJson.spaces2, runs)
+        g.bioSample match {
+          case Some(sample) =>
+
+          case None =>
+        }
+
       case p if essential =>
         val info = EssentialInfo.extract(g)
         //.asCsv(rfc.withCellSeparator('\t'))
-        val str = if(p.endsWith(".json")) info.asJson.spaces2 else info.asCsv(rfc.withCellSeparator('\t'))
+        val str = if(p.endsWith(".json")) info.asJson.spaces2 else info.asCsv(rfc.withCellSeparator('\t').withHeader)
         printOrSave(str, runs)
       case _ => printOrSave(g.runs.asJson.spaces2, runs)
     }

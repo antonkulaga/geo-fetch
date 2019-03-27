@@ -1,9 +1,9 @@
 package geo.fetch
 import cats.effect.IO
 import io.circe.generic.auto._
-import hammock._
 import hammock.marshalling._
-import hammock.jvm.Interpreter
+import hammock._
+import hammock.apache.ApacheInterpreter
 import hammock.circe.implicits._
 import io.circe._
 import Xml._
@@ -126,7 +126,7 @@ trait FetchXML extends Fetch {
 }
 
 trait Fetch {
-  implicit def interpreter: Interpreter[IO]
+  implicit def interpreter: InterpTrans[IO]
 
   def apiKey: String
 

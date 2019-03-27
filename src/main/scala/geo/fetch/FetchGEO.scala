@@ -3,7 +3,8 @@ import cats.effect.IO
 import io.circe.generic.auto._
 import hammock._
 import hammock.marshalling._
-import hammock.jvm.Interpreter
+import hammock._
+import hammock.apache.ApacheInterpreter
 import hammock.circe.implicits._
 import io.circe._
 import Xml._
@@ -17,7 +18,7 @@ import scala.xml.Elem
 
 case class FetchGEO(apiKey: String = "") extends FetchGeoJSON {
   implicit val client: CloseableHttpClient = HttpClientBuilder.create().disableCookieManagement().disableContentCompression().build()
-  implicit val interpreter: Interpreter[IO] = new Interpreter(client)
+  implicit val interpreter: InterpTrans[IO] = new ApacheInterpreter(client)
 
 }
 
