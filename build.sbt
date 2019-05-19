@@ -36,23 +36,23 @@ lazy val kantanVersion = "0.5.0"
 
 libraryDependencies ++= Seq(
  "org.typelevel" %% "cats-core" % "1.6.0",
- "com.monovore" %% "decline" % "0.6.0",
- "com.monovore" %% "decline-refined" % "0.6.0",
+ "com.monovore" %% "decline" % "0.6.2",
+ "com.monovore" %% "decline-refined" % "0.6.2",
  "com.pepegar" %% "hammock-apache-http" % hammockVersion,
  "com.pepegar" %% "hammock-circe" % hammockVersion,
- "org.wvlet.airframe" %% "airframe-log" % "19.2.1",
- "com.github.pathikrit" %% "better-files" % "3.7.1",
- "org.scala-lang.modules" %% "scala-xml" % "1.1.1",
- "com.lihaoyi" %% "pprint" % "0.5.3",
- "com.lihaoyi" %% "fastparse" % "2.1.0",
+ "org.wvlet.airframe" %% "airframe-log" % "19.5.0",
+ "com.github.pathikrit" %% "better-files" % "3.8.0", "com.github.pathikrit" %% "better-files" % "3.8.0",
+
+ "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
+ "com.lihaoyi" %% "pprint" % "0.5.4",
+ "com.lihaoyi" %% "fastparse" % "2.1.2",
  "io.circe" %% "circe-generic-extras" % circeVersion,
- "io.circe" %% "circe-parser" % circeVersion,
- "com.lihaoyi" %% "requests" % "0.1.7",
+ "com.lihaoyi" %% "requests" % "0.1.8",
  // Automatic type class instances derivation.
  "com.nrinaudo" %% "kantan.csv-java8" % kantanVersion,
  "com.nrinaudo" %% "kantan.csv-cats" % kantanVersion,
  "com.nrinaudo" %% "kantan.csv-generic" % kantanVersion,
- "org.scalatest" %% "scalatest" % "3.0.6" % Test
+ "org.scalatest" %% "scalatest" % "3.0.7" % Test
 )
 
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
@@ -88,9 +88,8 @@ maintainer := "Anton Kulaga <antonkulaga@gmail.com>"
 dockerRepository := Some("quay.io/comp-bio-aging")
 
 dockerCommands ++= Seq(
- Cmd("WORKDIR", "/data")
+  Cmd("WORKDIR", "/data")
 )
 
 enablePlugins(JavaAppPackaging, DockerPlugin)
-
 

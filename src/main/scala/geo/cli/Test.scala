@@ -13,7 +13,7 @@ import geo.models.{GSM, RunInfo}
 import wvlet.log.LogSupport
 import pprint.PPrinter.BlackWhite
 
-object Test extends scala.App
+object Test //extends scala.App
 {
   import geo.fetch._
   import io.circe.Xml._

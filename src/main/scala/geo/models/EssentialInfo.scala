@@ -25,6 +25,16 @@ object EssentialInfo {
         )
     }
   }
+
+  def extract(project: String, runs: List[RunInfo], title: String, characteristics: String): List[EssentialInfo] = {
+    runs.map{
+      case RunInfo( run: MainRunInfo, _, library: RunLibrary, sample: GeneralSampleInfo, _, _) =>
+        EssentialInfo(project, project, run.Run, run.download_path,
+          sample.ScientificName, sample.Model, library.LibraryLayout, library.LibraryStrategy,
+          title, sample.SampleName, characteristics.mkString(";")
+        )
+    }
+  }
 }
 @JsonCodec case class EssentialInfo(gsm: String, series: String, run: String,  path: String,
                                     organism: String, model: String, layout: String, strategy: String,

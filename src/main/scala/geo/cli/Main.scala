@@ -14,9 +14,8 @@ object Main extends CommandApp(
 )
 
 
-object MainCommand extends CommandsGSM with CommandSra {
+object MainCommand extends CommandsBioProject {
 
-  lazy val mainCommand: Opts[Unit] = Opts.subcommand(fetch_sra) orElse Opts.subcommand(fetch_gsm) //orElse Opts.subcommand(fetch_gse)
-
+  lazy val mainCommand: Opts[Unit] = Opts.subcommand(fetch_sra) orElse Opts.subcommand(fetch_gsm) orElse Opts.subcommand(fetch_bioproject)
 
 }

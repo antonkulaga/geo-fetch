@@ -6,7 +6,7 @@ import geo.models.{EssentialInfo, GSM}
 import io.circe.syntax._
 import kantan.csv._
 import kantan.csv.ops._
-class CommandsGSM extends FetchCommand with CommandSra {
+trait CommandsGSM extends FetchCommand with CommandSra {
 
   protected lazy val gsm = Opts.argument[String]("gsm")
 
@@ -21,6 +21,12 @@ class CommandsGSM extends FetchCommand with CommandSra {
     val g: GSM = f.getGSM(gsm, true)
     printOrSave(g.asJson.spaces2, o)
     runs match {
+      case p if essential =>
+        val info = EssentialInfo.extract(g)
+        //.asCsv(rfc.withCellSeparator('\t'))
+        val str = if(p.endsWith(".json")) info.asJson.spaces2 else info.asCsv(rfc.withCellSeparator('\t').withHeader)
+        printOrSave(str, runs)
+
       case p if g.library.strategy.toLowerCase == "bisulfite-seq" =>
         printOrSave(g.runs.asJson.spaces2, runs)
         g.bioSample match {
@@ -29,11 +35,6 @@ class CommandsGSM extends FetchCommand with CommandSra {
           case None =>
         }
 
-      case p if essential =>
-        val info = EssentialInfo.extract(g)
-        //.asCsv(rfc.withCellSeparator('\t'))
-        val str = if(p.endsWith(".json")) info.asJson.spaces2 else info.asCsv(rfc.withCellSeparator('\t').withHeader)
-        printOrSave(str, runs)
       case _ => printOrSave(g.runs.asJson.spaces2, runs)
     }
   }
@@ -44,4 +45,6 @@ class CommandsGSM extends FetchCommand with CommandSra {
   ) {
     (gsm, key, output, runs, essential).mapN{fetchGSM}
   }
+
+
 }
