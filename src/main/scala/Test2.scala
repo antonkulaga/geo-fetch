@@ -7,18 +7,17 @@ object Test2 extends scala.App {
   //val sra = "ERR2075073" //"SRR3200449"
   //val g = f.getGSM("PRJNA223213")
   //println(g)
-  val id = "SRX365810"//"SRX5462269"
+  val id = "PRJNA319368"//"SRX365810"//"SRX5462269"
   println(f.fetch_bioproject_json(id).unsafeRunSync())
   println("===============")
-  val p = f.getExperiment(id)
+  val p = f.getBioProject(id)//f.getExperiment(id)
   /*
   val s = {
     val json = f.fetch_bioproject_json(id).unsafeRunSync()
     exp.getOption(json).map(v=> v.map(_.as[BioProject.ExperimentPackage])).get
   }
   */
-  println(p)
-
+  pprint.pprintln(f.runsFromExperiments(p).map(_._2), height = 10000)
   //val r = f.getSRA(sra).head
 
   //BlackWhite.pprintln(r.toFlatJSON.spaces2)

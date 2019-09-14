@@ -182,7 +182,7 @@ object BioProject {
                                             @JsonKey("accession") accession: String,
                                             @JsonKey("alias") alias: String,
                                             identifiers: Json,
-                                            title: String,
+                                            title: Option[String],
                                             sample_name: SampleName,
                                             sample_links: Option[Json],
                                             sample_attributes: SampleAttributes
