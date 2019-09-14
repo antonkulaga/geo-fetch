@@ -15,7 +15,7 @@ object EssentialInfo {
     "title", "name", "characteristics"
     )(EssentialInfo.apply)(EssentialInfo.unapply)
 
-  def extract(gsm: GSM): List[EssentialInfo] = {
+  def extract(gsm: GSM): Vector[EssentialInfo] = {
     gsm.runs.map{
       case RunInfo( run: MainRunInfo, _, library: RunLibrary, sample: GeneralSampleInfo, _, _) =>
         EssentialInfo(gsm.id, gsm.gse.mkString(";"), run.Run, run.download_path,
@@ -26,12 +26,12 @@ object EssentialInfo {
     }
   }
 
-  def extract(project: String, runs: List[RunInfo], title: String, characteristics: String): List[EssentialInfo] = {
+  def extract(project: String, experiment: String, runs: Vector[RunInfo], title: String, characteristics: String): Vector[EssentialInfo] = {
     runs.map{
       case RunInfo( run: MainRunInfo, _, library: RunLibrary, sample: GeneralSampleInfo, _, _) =>
-        EssentialInfo(project, project, run.Run, run.download_path,
+        EssentialInfo(project, experiment, run.Run, run.download_path,
           sample.ScientificName, sample.Model, library.LibraryLayout, library.LibraryStrategy,
-          title, sample.SampleName, characteristics.mkString(";")
+          title, sample.SampleName, characteristics
         )
     }
   }

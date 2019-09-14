@@ -16,15 +16,18 @@ class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
   protected lazy val bioproject = Opts.argument[String]("bioproject")
 
 
-  def fetchBioProject(pro: String, key: String, o: String, runsPath: String, essential: Boolean, title: String, characteristics: String): Unit = {
+  def fetchBioProject(pro: String, key: String, o: String, runsPath: String, essential: Boolean): Unit = {
     val f =  FetchGEO(key)
     println(s"fetching bioproject $pro json to ${o} ...")
-    printOrSave(f.fetch_sra_json(pro).unsafeRunSync().toString, o)
+    val bioJs = f.fetch_bioproject_json(pro).unsafeRunSync()
+    printOrSave(bioJs.toString, o)
+    val runs = if(pro.toUpperCase.startsWith("SRX") || pro.toUpperCase.startsWith("ERX"))
+      Vector(f.runsFromExperiment(f.parseExperiment(bioJs))) else f.runsFromExperiments(f.parseBioProject(bioJs))
+    //val bioPro = f.parseBioProject(bioJs)
     println(s"saving runs to ${runsPath}")
-    val runs = f.getSRA(pro)
     runs match {
       case p if essential =>
-        val info = EssentialInfo.extract(pro,runs,title, characteristics)
+        val info = runs.flatMap { case (e, rs) => EssentialInfo.extract(pro, e.experiment.accession, rs, e.experiment.title, e.sample.sample_attributes.characteristics) }
         //.asCsv(rfc.withCellSeparator('\t'))
         val str = if(p.endsWith(".json")) info.asJson.spaces2 else info.asCsv(rfc.withCellSeparator('\t').withHeader)
         printOrSave(str, runsPath)
@@ -36,6 +39,6 @@ class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
   protected lazy val fetch_bioproject: Command[Unit] = Command(
     name = "bioproject",
     header = "Fetch BioProject"){
-    (bioproject, key, output, runs, essential, title, characteristics).mapN{fetchBioProject}
+    (bioproject, key, output, runs, essential).mapN{fetchBioProject}
   }
 }

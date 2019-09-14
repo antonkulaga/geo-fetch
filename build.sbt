@@ -8,11 +8,9 @@ name := "geo-fetch"
 
 organization := "group.aging-research"
 
-scalaVersion :=  "2.12.8"
+scalaVersion :=  "2.12.10"
 
-version := "0.0.3"
-
-coursierMaxIterations := 200
+version := "0.0.6"
 
 isSnapshot := false
 
@@ -28,31 +26,34 @@ resolvers += Resolver.bintrayRepo("comp-bio-aging", "main")
 
 addCompilerPlugin(("org.scalamacros" %% "paradise" % "2.1.1").cross(CrossVersion.full))
 
-lazy val hammockVersion = "0.9.0"
+lazy val hammockVersion = "0.9.2"
 
-lazy val circeVersion = "0.11.1"
+lazy val circeVersion = "0.12.0"
 
-lazy val kantanVersion = "0.5.0"
+lazy val kantanVersion = "0.5.1"
 
 libraryDependencies ++= Seq(
- "org.typelevel" %% "cats-core" % "1.6.0",
+ "org.typelevel" %% "cats-core" % "1.6.1",
  "com.monovore" %% "decline" % "0.6.2",
  "com.monovore" %% "decline-refined" % "0.6.2",
  "com.pepegar" %% "hammock-apache-http" % hammockVersion,
  "com.pepegar" %% "hammock-circe" % hammockVersion,
- "org.wvlet.airframe" %% "airframe-log" % "19.5.0",
+ "org.wvlet.airframe" %% "airframe-log" % "19.6.1",
  "com.github.pathikrit" %% "better-files" % "3.8.0", "com.github.pathikrit" %% "better-files" % "3.8.0",
 
  "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
- "com.lihaoyi" %% "pprint" % "0.5.4",
- "com.lihaoyi" %% "fastparse" % "2.1.2",
+ "com.lihaoyi" %% "pprint" % "0.5.5",
+ "com.lihaoyi" %% "fastparse" % "2.1.3",
  "io.circe" %% "circe-generic-extras" % circeVersion,
- "com.lihaoyi" %% "requests" % "0.1.8",
+ "io.circe" %% "circe-optics" % circeVersion,
+ "com.lihaoyi" %% "requests" % "0.2.0",
  // Automatic type class instances derivation.
  "com.nrinaudo" %% "kantan.csv-java8" % kantanVersion,
  "com.nrinaudo" %% "kantan.csv-cats" % kantanVersion,
  "com.nrinaudo" %% "kantan.csv-generic" % kantanVersion,
- "org.scalatest" %% "scalatest" % "3.0.7" % Test
+ "org.json4s" %% "json4s-xml" % "3.6.7",
+ "org.json4s" %% "json4s-native" % "3.6.7",
+ "org.scalatest" %% "scalatest" % "3.0.8" % Test
 )
 
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
@@ -69,7 +70,7 @@ bintrayOrganization := Some("comp-bio-aging")
 
 licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
-dockerBaseImage := "openjdk:11-oracle"
+dockerBaseImage := "oracle/graalvm-ce:19.1.1"
 
 daemonUserUid in Docker := None
 

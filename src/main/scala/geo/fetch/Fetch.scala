@@ -53,6 +53,9 @@ trait FetchJSON extends FetchXML {
   def fetch_json(db: String, id: String): IO[Json] = fetch_xml(db, id).map(e=>e.toJson)
 }
 
+/**
+  * See https://www.ncbi.nlm.nih.gov/books/NBK25499/#chapter4.ESearch for more info
+  */
 trait FetchXML extends Fetch {
 
 
@@ -96,9 +99,9 @@ trait FetchXML extends Fetch {
       .replace("\r\n", "\n")
   }
 
-  def getSRA(id: String): List[RunInfo] = {
+  def getSRA(id: String): Vector[RunInfo] = {
     val run_str = fetch_sra_runinfo(id: String)
-    RunInfo.fromCSV(run_str)
+    RunInfo.fromCSV(run_str).toVector
   }
 
   def fetch_structure_xml(id: String): IO[Elem] = fetch_xml("structure", id)

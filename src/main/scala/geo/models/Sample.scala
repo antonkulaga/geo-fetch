@@ -1,6 +1,8 @@
 package geo.models
 
-import io.circe.generic.JsonCodec     // Enriches types with useful methods.
+import io.circe.Json
+import io.circe.generic.JsonCodec
+import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec, JsonKey}     // Enriches types with useful methods.
 
 object GSM {
 
@@ -49,7 +51,7 @@ object GSM {
 
     val relations = propMap("Sample_relation")
 
-    GSM(gsm, series, title, tp, organism, sequencer, characteristics, lib, extraction, relations, status, Nil)
+    GSM(gsm, series, title, tp, organism, sequencer, characteristics, lib, extraction, relations, status, Vector.empty)
   }
 
 }
@@ -127,8 +129,151 @@ trait GSMLike {
                sequencer: String,
                characteristics: Map[String, String], //Characteristics
                library: Library, extraction: Extraction,
-               relations: Map[String, String], status: Status, runs: List[RunInfo]) extends GSMLike
+               relations: Map[String, String], status: Status, runs: Vector[RunInfo]) extends GSMLike
 
+object BioProject {
+
+  val withUpperCaseKeys: String ⇒ String =  str => str.toUpperCase
+  implicit val customConfig: Configuration = Configuration.default.withDefaults.copy(transformMemberNames = withUpperCaseKeys)
+
+
+  import io.circe._
+  import io.circe.generic.JsonCodec
+
+
+
+
+  object ExperimentSet {
+    @ConfiguredJsonCodec case class Experiment(@JsonKey("accession") accession: String,
+                                               @JsonKey("alias") alias: String,
+                                               identifiers: Json,
+                                               title: String,
+                                               study_ref: Json,
+                                               design: Json,
+                                               platform: Json,
+                                               @JsonKey("center_name") centerName: Option[String],
+                                               processing: Option[Json]
+                                              )
+
+
+    @ConfiguredJsonCodec case class Study(
+                      @JsonKey("accession") accession: String,
+                      @JsonKey("alias") alias: String,
+                      @JsonKey("center_name") centerName: String,
+                      identifiers: Json,
+                      descriptor: Json
+
+                    )
+
+    @ConfiguredJsonCodec case class SampleAttribute(tag: String, value: String)
+    @ConfiguredJsonCodec case class SampleAttributes(
+                                 sample_attribute: Vector[SampleAttribute]
+                               )
+    {
+      lazy val characteristics = sample_attribute.map(a=>a.tag + ":" + a.value).mkString(";")
+    }
+
+    @ConfiguredJsonCodec case class SampleName(
+                           taxon_id: Int,
+                           scientific_name: String
+                         )
+
+    @ConfiguredJsonCodec case class Sample(
+                                            @JsonKey("accession") accession: String,
+                                            @JsonKey("alias") alias: String,
+                                            identifiers: Json,
+                                            title: String,
+                                            sample_name: SampleName,
+                                            sample_links: Option[Json],
+                                            sample_attributes: SampleAttributes
+                                          )
+    /*
+ "SAMPLE" : {
+[info]         "accession" : "SRS4436074",
+[info]         "alias" : "36",
+[info]         "IDENTIFIERS" : {
+[info]           "PRIMARY_ID" : "SRS4436074",
+[info]           "EXTERNAL_ID" : "SAMN11044060",
+[info]           "namespace" : "BioSample"
+[info]         },
+[info]         "TITLE" : "SAMN36",
+[info]         "SAMPLE_NAME" : {
+[info]           "TAXON_ID" : "9031",
+[info]           "SCIENTIFIC_NAME" : "Gallus gallus"
+[info]         },
+[info]         "SAMPLE_LINKS" : {
+[info]           "SAMPLE_LINK" : [
+[info]             {
+[info]               "XREF_LINK" : {
+[info]                 "DB" : "bioproject",
+[info]                 "ID" : "3",
+[info]                 "LABEL" : "PRJNA3"
+[info]               }
+[info]             },
+[info]             {
+[info]               "XREF_LINK" : {
+[info]                 "DB" : "bioproject",
+[info]                 "ID" : "525241",
+[info]                 "LABEL" : "PRJNA525241"
+[info]               }
+[info]             }
+[info]           ]
+[info]         },
+[info]         "SAMPLE_ATTRIBUTES" : {
+[info]           "SAMPLE_ATTRIBUTE" : [
+[info]             {
+[info]               "TAG" : "breed",
+[info]               "VALUE" : "rooster"
+[info]             },
+[info]             {
+[info]               "TAG" : "ecotype",
+[info]               "VALUE" : "hongjiang"
+[info]             },
+[info]             {
+[info]               "TAG" : "age",
+[info]               "VALUE" : "200days"
+[info]             },
+[info]             {
+[info]               "TAG" : "dev_stage",
+[info]               "VALUE" : "adult cock"
+[info]             },
+[info]             {
+[info]               "TAG" : "sex",
+[info]               "VALUE" : "male"
+[info]             },
+[info]             {
+[info]               "TAG" : "tissue",
+[info]               "VALUE" : "blood"
+[info]             },
+[info]             {
+[info]               "TAG" : "individual",
+[info]               "VALUE" : "36"
+[info]             },
+[info]             {
+[info]               "TAG" : "BioSampleModel",
+[info]               "VALUE" : "Model organism or animal"
+[info]             }
+[info]           ]
+[info]         }
+[info]       },
+     */
+
+    @ConfiguredJsonCodec case class ExperimentPackage(
+                                                       experiment: Experiment,
+                                                       submission: Json,
+                                                       @JsonKey("Organization") organization: Json,
+                                                       study: Study,
+                                                       sample: Sample,
+                                                       @JsonKey("Pool") pool: Json,
+                                                       run_set: Json)
+  }
+  import ExperimentSet._
+  @ConfiguredJsonCodec case class ExperimentSet(experiments: Vector[ExperimentPackage])
+  {
+    lazy val experimentMap: Vector[(String, ExperimentPackage)] = experiments.map(e=>e.experiment.accession -> e)
+  }
+
+}
 /*
 ^SAMPLE = GSM1698570
 !Sample_title = Biochain_Adult_Kidney

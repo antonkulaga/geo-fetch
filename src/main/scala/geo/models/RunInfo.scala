@@ -1,5 +1,7 @@
 package geo.models
 
+import io.circe.Json
+import io.circe.Json.JArray
 import kantan.csv._
 import kantan.csv.ops._
 import shapeless._
@@ -141,6 +143,15 @@ object OtherRunInfo {
   def asStringList = asList.map(_.toString)
   */
 
+  def toFlatJSON: Json = {
+    import io.circe.syntax._
+    this.sample.asJson
+      .deepMerge(this.subject.asJson)
+      .deepMerge(this.subject.asJson)
+      .deepMerge(this.library.asJson)
+      .deepMerge(this.stats.asJson)
+      .deepMerge(this.other.asJson)
+  }
 
 }
 /*

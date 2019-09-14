@@ -3,15 +3,29 @@ package io.circe
 // copy-pasted from https://github.com/aparo/circe-xml
 // Aparo, please, publish the lib, so I can just depend on it!
 
-import scala.util.{Failure, Success, Try}
+import io.circe.parser.parse
+
 import scala.xml._
+
 
 object Xml {
   implicit class RichCirceJson(val xml: NodeSeq) {
     def toJson: Json = {
-      Xml.toJson(xml)
+      //UGLY HACK!!!!!!!!!!!1
+      import org.json4s.native.JsonMethods.render
+      import org.json4s.native.JsonMethods.pretty
+      val str =  pretty(render(org.json4s.Xml.toJson(xml)))
+      parse(str) match {
+        case Left(f) =>
+          println(s"FAILURE on xml parsing! ${f}")
+          Json.Null
+        case Right(v) => v
+      }
     }
   }
+
+
+  /*
 
   implicit class RichXml(val json: Json) {
     def toXml: NodeSeq = {
@@ -128,4 +142,6 @@ object Xml {
 
   private[this] case class XmlElem(name: String, value: String)
     extends Elem(null, name, xml.Null, TopScope, true, Text(value))
+
+   */
 }

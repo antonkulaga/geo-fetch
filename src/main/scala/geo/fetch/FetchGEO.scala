@@ -9,19 +9,24 @@ import hammock.circe.implicits._
 import io.circe._
 import Xml._
 import fastparse.Parsed
-import geo.models.GSM
+import geo.models.BioProject.ExperimentSet.ExperimentPackage
+import geo.models.{BioProject, GSM, RunInfo}
 import hammock.Entity.StringEntity
 import io.circe.Decoder.Result
+import io.circe.optics.JsonPath.root
 import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
 
 import scala.xml.Elem
 
 case class FetchGEO(apiKey: String = "") extends FetchGeoJSON {
-  implicit val client: CloseableHttpClient = HttpClientBuilder.create().disableCookieManagement().disableContentCompression().build()
-  implicit val interpreter: InterpTrans[IO] = new ApacheInterpreter(client)
+  //implicit val client: CloseableHttpClient = HttpClientBuilder.create().disableCookieManagement().disableContentCompression().build()
+  implicit val interpreter: InterpTrans[IO] = ApacheInterpreter.instance
 
 }
 
+/**
+  * Fetches GEO information as JSON (often converted from xml results)
+  */
 trait FetchGeoJSON extends FetchGeoXML with FetchJSON {
 
 
@@ -47,6 +52,43 @@ trait FetchGeoJSON extends FetchGeoXML with FetchJSON {
       val runs =  getSRA(gsm.srx.get)
       gsm.copy(runs = runs)
     } else gsm
+  }
+
+  protected val expArr = root.`EXPERIMENT_PACKAGE_SET`.`EXPERIMENT_PACKAGE`.arr
+  protected val exp = root.`EXPERIMENT_PACKAGE_SET`.`EXPERIMENT_PACKAGE`.json
+
+
+
+  def runsFromExperiment(e: BioProject.ExperimentSet.ExperimentPackage) = {
+    e -> getSRA(e.experiment.accession)
+  }
+
+  def runsFromExperiments(exp: BioProject.ExperimentSet): Vector[(ExperimentPackage, Vector[RunInfo])] = {
+    exp.experiments.map(runsFromExperiment)
+  }
+
+
+  def parseExperiment(json: Json): ExperimentPackage = {
+    exp.getOption(json).map(_.as[BioProject.ExperimentSet.ExperimentPackage]).map{
+      case Right(value) => value
+    }.get
+  }
+
+  def getExperiment(id: String): ExperimentPackage = {
+    val json = fetch_bioproject_json(id).unsafeRunSync()
+    parseExperiment(json)
+  }
+
+  def parseBioProject(json: Json): BioProject.ExperimentSet = {
+    val decoded: Vector[Result[BioProject.ExperimentSet.ExperimentPackage]] = expArr.getOption(json).map(v=> v.map(_.as[BioProject.ExperimentSet.ExperimentPackage])).getOrElse(Vector.empty)
+    for( Left(e) <- decoded.filter(_.isLeft)) println(s"ERROR in decoding bioproject: ${e.toString()}")
+    val packages = decoded.collect{ case Right(v) => v}
+    BioProject.ExperimentSet(packages)
+  }
+
+  def getBioProject(id: String): BioProject.ExperimentSet = {
+    val json = fetch_bioproject_json(id).unsafeRunSync()
+    parseBioProject(json)
   }
 }
 
