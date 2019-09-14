@@ -33,12 +33,12 @@ lazy val circeVersion = "0.12.0"
 lazy val kantanVersion = "0.5.1"
 
 libraryDependencies ++= Seq(
- "org.typelevel" %% "cats-core" % "1.6.1",
+ "org.typelevel" %% "cats-core" % "2.0.0",
  "com.monovore" %% "decline" % "0.6.2",
  "com.monovore" %% "decline-refined" % "0.6.2",
  "com.pepegar" %% "hammock-apache-http" % hammockVersion,
  "com.pepegar" %% "hammock-circe" % hammockVersion,
- "org.wvlet.airframe" %% "airframe-log" % "19.6.1",
+ "org.wvlet.airframe" %% "airframe-log" % "19.9.5",
  "com.github.pathikrit" %% "better-files" % "3.8.0", "com.github.pathikrit" %% "better-files" % "3.8.0",
 
  "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
