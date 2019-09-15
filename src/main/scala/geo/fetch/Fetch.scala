@@ -100,7 +100,7 @@ trait FetchXML extends Fetch {
   }
 
   def getSRA(id: String): Vector[RunInfo] = {
-    val run_str = fetch_sra_runinfo(id: String)
+    val run_str = fetch_sra_runinfo(id: String).replace("\r\n", "\n")
     RunInfo.fromCSV(run_str).toVector
   }
 

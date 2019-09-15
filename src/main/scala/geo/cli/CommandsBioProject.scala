@@ -8,6 +8,7 @@ import io.circe.syntax._
 import kantan.csv._
 import kantan.csv.ops._
 
+object CommandsBioProject extends CommandsBioProject
 class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
 
   protected lazy val title = Opts.option[String](long = "title", help = "Title of the project").withDefault("")
@@ -17,17 +18,31 @@ class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
   protected lazy val bioproject = Opts.argument[String]("bioproject")
 
 
-  protected def fetchBioJSON(pro: String, key: String, o: String)(implicit f: FetchGEO): Json = {
-    val f =  FetchGEO(key)
-    println(s"fetching bioproject $pro json to ${o} ...")
+  /**
+    *
+    * @param pro project name
+    * @param output output file
+    * @param f implicit fetcher
+    * @return
+    */
+  protected def fetchBioJSON(pro: String, output: String)(implicit f: FetchGEO): Json = {
+    println(s"fetching bioproject $pro json to ${output} ...")
     val bioJs = f.fetch_bioproject_json(pro).unsafeRunSync()
-    printOrSave(bioJs.toString, o)
+    printOrSave(bioJs.toString, output)
     bioJs
   }
 
+  /**
+    * Writes experiment
+    * @param pro
+    * @param key
+    * @param o
+    * @param runsPath
+    * @param essential
+    */
   def fetchExperiment(pro: String, key: String, o: String, runsPath: String, essential: Boolean): Unit = {
     implicit val f =  FetchGEO(key)
-    val bioJs = fetchBioJSON(pro, key, o)
+    val bioJs = fetchBioJSON(pro, o)
     val (e, runs) = f.runsFromExperiment(f.parseExperiment(bioJs))
     if(essential) {
       val info = EssentialInfo.extract(pro, e.experiment.accession, runs, e.experiment.title, e.sample.sample_attributes.characteristics)
@@ -41,7 +56,7 @@ class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
   fetchExperiment(pro, key, o, runsPath, essential)
   else {
     implicit val f =  FetchGEO(key)
-    val bioJs = fetchBioJSON(pro, key, o)
+    val bioJs = fetchBioJSON(pro, o)
     val runs = f.runsFromExperiments(f.parseBioProject(bioJs))
     //val bioPro = f.parseBioProject(bioJs)
     println(s"saving runs to ${runsPath}")

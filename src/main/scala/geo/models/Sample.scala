@@ -270,6 +270,7 @@ object BioProject {
   import ExperimentSet._
   @ConfiguredJsonCodec case class ExperimentSet(experiments: Vector[ExperimentPackage])
   {
+    lazy val experimentIds: Vector[String] = experiments.map(_.experiment.accession)
     lazy val experimentMap: Vector[(String, ExperimentPackage)] = experiments.map(e=>e.experiment.accession -> e)
   }
 

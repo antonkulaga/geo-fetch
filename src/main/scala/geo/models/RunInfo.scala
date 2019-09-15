@@ -145,9 +145,9 @@ object OtherRunInfo {
 
   def toFlatJSON: Json = {
     import io.circe.syntax._
-    this.sample.asJson
+    this.run.asJson
       .deepMerge(this.subject.asJson)
-      .deepMerge(this.subject.asJson)
+      .deepMerge(this.sample.asJson)
       .deepMerge(this.library.asJson)
       .deepMerge(this.stats.asJson)
       .deepMerge(this.other.asJson)

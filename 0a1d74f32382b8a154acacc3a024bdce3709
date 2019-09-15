@@ -1,0 +1,311 @@
+{
+  "EXPERIMENT_PACKAGE_SET" : {
+    "EXPERIMENT_PACKAGE" : {
+      "EXPERIMENT" : {
+        "center_name" : "GEO",
+        "accession" : "SRX211599",
+        "alias" : "GSM1055009_1",
+        "IDENTIFIERS" : {
+          "PRIMARY_ID" : "SRX211599"
+        },
+        "TITLE" : "GSM1055009: mau.lv.3; Mesocricetus auratus; RNA-Seq",
+        "STUDY_REF" : {
+          "refname" : "GSE43013",
+          "accession" : "SRP017611",
+          "IDENTIFIERS" : {
+            "PRIMARY_ID" : "SRP017611"
+          }
+        },
+        "DESIGN" : {
+          "DESIGN_DESCRIPTION" : "",
+          "SAMPLE_DESCRIPTOR" : {
+            "refname" : "GSM1055009",
+            "accession" : "SRS380713",
+            "IDENTIFIERS" : {
+              "PRIMARY_ID" : "SRS380713"
+            }
+          },
+          "LIBRARY_DESCRIPTOR" : {
+            "LIBRARY_STRATEGY" : "RNA-Seq",
+            "LIBRARY_SOURCE" : "TRANSCRIPTOMIC",
+            "LIBRARY_SELECTION" : "cDNA",
+            "LIBRARY_LAYOUT" : {
+              "PAIRED" : ""
+            }
+          }
+        },
+        "PLATFORM" : {
+          "ILLUMINA" : {
+            "INSTRUMENT_MODEL" : "Illumina Genome Analyzer IIx"
+          }
+        },
+        "EXPERIMENT_LINKS" : {
+          "EXPERIMENT_LINK" : [
+            {
+              "URL_LINK" : {
+                "LABEL" : "GEO Sample",
+                "URL" : "http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM1055009"
+              }
+            },
+            {
+              "XREF_LINK" : {
+                "DB" : "gds",
+                "ID" : "301055009"
+              }
+            }
+          ]
+        },
+        "EXPERIMENT_ATTRIBUTES" : {
+          "EXPERIMENT_ATTRIBUTE" : {
+            "TAG" : "GEO Accession",
+            "VALUE" : "GSM1055009"
+          }
+        }
+      },
+      "SUBMISSION" : {
+        "accession" : "SRA063005",
+        "lab_name" : "",
+        "submission_comment" : "submission brokered by GEO",
+        "center_name" : "GEO",
+        "broker_name" : "GEO",
+        "alias" : "GEO: GSE43013",
+        "IDENTIFIERS" : {
+          "PRIMARY_ID" : "SRA063005"
+        }
+      },
+      "Organization" : {
+        "type" : "center",
+        "Name" : "Gene Expression Omnibus",
+        "abbr" : "GEO"
+      },
+      "STUDY" : {
+        "accession" : "SRP017611",
+        "alias" : "GSE43013",
+        "center_name" : "GEO",
+        "IDENTIFIERS" : {
+          "PRIMARY_ID" : "SRP017611",
+          "EXTERNAL_ID" : "GSE43013",
+          "namespace" : "GEO"
+        },
+        "DESCRIPTOR" : {
+          "STUDY_TITLE" : "Gene Expression Defines Natural Changes in Mammalian Lifespan",
+          "existing_study_type" : "Other",
+          "STUDY_ABSTRACT" : "Mammals differ more than hundred fold in maximum lifespan, which can be altered in either direction during evolution, but the molecular basis for natural changes in longevity is not understood. Divergent evolution of mammals also led to extensive changes in gene expression within and between lineages. To understand the relationship between lifespan and variation in gene expression, we carried out RNA-seq-based gene expression analyses of liver, kidney and brain of 33 diverse species of mammals. Our analysis uncovered parallel evolution of gene expression and lifespan, as well as the associated life history traits, and identified the processes and pathways involved. These findings provide direct insights into how Nature reversibly adjusts lifespan and other traits during adaptive radiation of lineages. Overall design: RNA-seq gene expression profiling in normal liver, kidney and brain of 33 mammalian species.",
+          "CENTER_PROJECT_NAME" : "Gene Expression Defines Natural Changes in Mammalian Lifespan"
+        },
+        "STUDY_LINKS" : {
+          "STUDY_LINK" : {
+            "XREF_LINK" : {
+              "DB" : "pubmed",
+              "ID" : "25677554"
+            }
+          }
+        }
+      },
+      "SAMPLE" : {
+        "accession" : "SRS380713",
+        "alias" : "GSM1055009",
+        "center_name" : "GEO",
+        "IDENTIFIERS" : {
+          "PRIMARY_ID" : "SRS380713",
+          "EXTERNAL_ID" : "GSM1055009",
+          "namespace" : "GEO"
+        },
+        "TITLE" : "mau.lv.3",
+        "SAMPLE_NAME" : {
+          "TAXON_ID" : "10036",
+          "SCIENTIFIC_NAME" : "Mesocricetus auratus"
+        },
+        "SAMPLE_LINKS" : {
+          "SAMPLE_LINK" : {
+            "XREF_LINK" : {
+              "DB" : "bioproject",
+              "ID" : "184055",
+              "LABEL" : "PRJNA184055"
+            }
+          }
+        },
+        "SAMPLE_ATTRIBUTES" : {
+          "SAMPLE_ATTRIBUTE" : [
+            {
+              "TAG" : "source_name",
+              "VALUE" : "Mesocricetus auratus_liver"
+            },
+            {
+              "TAG" : "genotype/variation",
+              "VALUE" : "wild type"
+            },
+            {
+              "TAG" : "age",
+              "VALUE" : "adult"
+            },
+            {
+              "TAG" : "tissue",
+              "VALUE" : "normal liver"
+            },
+            {
+              "TAG" : "organ part",
+              "VALUE" : "whole liver"
+            }
+          ]
+        }
+      },
+      "Pool" : {
+        "Member" : {
+          "organism" : "Mesocricetus auratus",
+          "tax_id" : "10036",
+          "bases" : "2018561946",
+          "spots" : "19789823",
+          "sample_title" : "mau.lv.3",
+          "sample_name" : "GSM1055009",
+          "accession" : "SRS380713",
+          "member_name" : "",
+          "IDENTIFIERS" : {
+            "PRIMARY_ID" : "SRS380713",
+            "EXTERNAL_ID" : "GSM1055009",
+            "namespace" : "GEO"
+          }
+        }
+      },
+      "RUN_SET" : {
+        "RUN" : {
+          "static_data_available" : "1",
+          "cluster_name" : "public",
+          "is_public" : "true",
+          "published" : "2015-02-17 18:59:10",
+          "load_done" : "true",
+          "size" : "1391004832",
+          "total_bases" : "2018561946",
+          "total_spots" : "19789823",
+          "center_name" : "GEO",
+          "accession" : "SRR636859",
+          "alias" : "GSM1055009_r1",
+          "IDENTIFIERS" : {
+            "PRIMARY_ID" : "SRR636859"
+          },
+          "EXPERIMENT_REF" : {
+            "refname" : "GSM1055009_1",
+            "accession" : "SRX211599",
+            "IDENTIFIERS" : {
+              "PRIMARY_ID" : "SRX211599"
+            }
+          },
+          "Pool" : {
+            "Member" : {
+              "organism" : "Mesocricetus auratus",
+              "tax_id" : "10036",
+              "bases" : "2018561946",
+              "spots" : "19789823",
+              "sample_title" : "mau.lv.3",
+              "sample_name" : "GSM1055009",
+              "accession" : "SRS380713",
+              "member_name" : "",
+              "IDENTIFIERS" : {
+                "PRIMARY_ID" : "SRS380713",
+                "EXTERNAL_ID" : "GSM1055009",
+                "namespace" : "GEO"
+              }
+            }
+          },
+          "SRAFiles" : {
+            "SRAFile" : {
+              "sratoolkit" : "1",
+              "supertype" : "Primary ETL",
+              "semantic_name" : "run",
+              "md5" : "cfd0282223c602cfb896f9356d34ad47",
+              "date" : "2012-12-19 17:19:17",
+              "size" : "1391006577",
+              "url" : "https://sra-download.st-va.ncbi.nlm.nih.gov/sos/sra-pub-run-4/SRR636859/SRR636859.1",
+              "filename" : "SRR636859",
+              "cluster" : "public",
+              "Alternatives" : [
+                {
+                  "org" : "NCBI",
+                  "access_type" : "anonymous",
+                  "free_egress" : "worldwide",
+                  "url" : "https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos/sra-pub-run-2/SRR636859/SRR636859.1"
+                },
+                {
+                  "org" : "NCBI",
+                  "access_type" : "anonymous",
+                  "free_egress" : "worldwide",
+                  "url" : "https://sra-download.st-va.ncbi.nlm.nih.gov/sos/sra-pub-run-4/SRR636859/SRR636859.1"
+                },
+                {
+                  "org" : "AWS",
+                  "access_type" : "aws identity",
+                  "free_egress" : "s3.us-east-1",
+                  "url" : "s3://sra-pub-run-5/SRR636859/SRR636859.1"
+                },
+                {
+                  "org" : "GCP",
+                  "access_type" : "gcp identity",
+                  "free_egress" : "gs.US",
+                  "url" : "gs://sra-pub-run-5/SRR636859/SRR636859.1"
+                }
+              ]
+            }
+          },
+          "CloudFiles" : {
+            "CloudFile" : [
+              {
+                "location" : "gs.US",
+                "provider" : "gs",
+                "filetype" : "run"
+              },
+              {
+                "location" : "s3.us-east-1",
+                "provider" : "s3",
+                "filetype" : "run"
+              }
+            ]
+          },
+          "Statistics" : {
+            "nspots" : "19789823",
+            "nreads" : "2",
+            "Read" : [
+              {
+                "stdev" : "0",
+                "average" : "51",
+                "count" : "19789823",
+                "index" : "0"
+              },
+              {
+                "stdev" : "0",
+                "average" : "51",
+                "count" : "19789823",
+                "index" : "1"
+              }
+            ]
+          },
+          "Bases" : {
+            "count" : "2018561946",
+            "cs_native" : "false",
+            "Base" : [
+              {
+                "count" : "506166715",
+                "value" : "A"
+              },
+              {
+                "count" : "501411182",
+                "value" : "C"
+              },
+              {
+                "count" : "493338509",
+                "value" : "G"
+              },
+              {
+                "count" : "513241516",
+                "value" : "T"
+              },
+              {
+                "count" : "4404024",
+                "value" : "N"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
