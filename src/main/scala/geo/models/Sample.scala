@@ -140,28 +140,44 @@ object BioProject {
   import io.circe._
   import io.circe.generic.JsonCodec
 
+  @ConfiguredJsonCodec case class LibraryDescriptor(
+                                                   library_strategy: String,
+                                                   library_source: String,
+                                                   library_selection: String,
+                                                   library_layout: Json,
+                                                   library_construction_protocol: String = ""
+                                                   )
+  @ConfiguredJsonCodec case class Design(
+                                        design_description: String,
+                                        sample_descriptor: Option[Json],
+                                        library_descriptor: LibraryDescriptor,
 
-
+                                        )
 
   object ExperimentSet {
     @ConfiguredJsonCodec case class Experiment(@JsonKey("accession") accession: String,
                                                @JsonKey("alias") alias: String,
                                                identifiers: Json,
                                                title: String,
-                                               study_ref: Json,
-                                               design: Json,
+                                               study_ref: Option[Json],
+                                               design: Design,
                                                platform: Json,
                                                @JsonKey("center_name") centerName: Option[String],
                                                processing: Option[Json]
                                               )
 
 
+    @ConfiguredJsonCodec case class StudyDescriptor(study_title: String,
+                                                    @JsonKey("existing_study_type") study_type: String = "",
+                                                    study_abstract: String = "",
+                                                    center_project_name: Option[String] = None)
     @ConfiguredJsonCodec case class Study(
                       @JsonKey("accession") accession: String,
-                      @JsonKey("alias") alias: String,
-                      @JsonKey("center_name") centerName: String,
+                      @JsonKey("alias") alias: String = "",
+                      @JsonKey("center_name") centerName: String = "",
                       identifiers: Json,
-                      descriptor: Json
+                      descriptor: StudyDescriptor
+                      //descriptor: Json
 
                     )
 
@@ -170,6 +186,7 @@ object BioProject {
                                  sample_attribute: Vector[SampleAttribute]
                                )
     {
+      lazy val attributes: Map[String, String] = sample_attribute.map(a=> a.tag -> a.value).toMap
       lazy val characteristics = sample_attribute.map(a=>a.tag + ":" + a.value).mkString(";")
     }
 

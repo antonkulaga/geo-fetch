@@ -63,6 +63,12 @@ object SubjectInfo {
     HeaderDecoder.decoder("Subject_ID","Sex","Disease","Tumor","Affection_Status","Analyte_Type",
       "Histological_Type","Body_Site"
     )(SubjectInfo.apply)
+  protected val labeledGen =  LabelledGeneric[SubjectInfo]
+
+  protected val gen = Generic[SubjectInfo]
+
+  def asMap(info: SubjectInfo) = labeledGen.to(info).toMap//[String, String]
+
 }
 
 @JsonCodec case class SubjectInfo(
@@ -75,6 +81,9 @@ object SubjectInfo {
                                    Histological_Type: String,
                                    Body_Site: String
                                  )
+{
+  lazy val asMap= SubjectInfo.asMap(this)
+}
 object MainRunInfo {
   implicit val mainRunInfoDecoder: HeaderDecoder[MainRunInfo] =
     HeaderDecoder.decoder("Run",

@@ -10,7 +10,7 @@ organization := "group.aging-research"
 
 scalaVersion :=  "2.12.10"
 
-version := "0.0.6"
+version := "0.0.11"
 
 isSnapshot := false
 
@@ -26,26 +26,26 @@ resolvers += Resolver.bintrayRepo("comp-bio-aging", "main")
 
 addCompilerPlugin(("org.scalamacros" %% "paradise" % "2.1.1").cross(CrossVersion.full))
 
-lazy val hammockVersion = "0.9.2"
+lazy val hammockVersion = "0.10.0"
 
-lazy val circeVersion = "0.12.0"
+lazy val circeVersion = "0.12.2"
 
-lazy val kantanVersion = "0.5.1"
+lazy val kantanVersion = "0.6.0"
 
 libraryDependencies ++= Seq(
  "org.typelevel" %% "cats-core" % "2.0.0",
- "com.monovore" %% "decline" % "0.6.2",
- "com.monovore" %% "decline-refined" % "0.6.2",
+ "com.monovore" %% "decline" % "1.0.0",
+ "com.monovore" %% "decline-refined" % "1.0.0",
  "com.pepegar" %% "hammock-apache-http" % hammockVersion,
  "com.pepegar" %% "hammock-circe" % hammockVersion,
- "org.wvlet.airframe" %% "airframe-log" % "19.9.5",
+ "org.wvlet.airframe" %% "airframe-log" % "19.10.1",
  "com.github.pathikrit" %% "better-files" % "3.8.0", "com.github.pathikrit" %% "better-files" % "3.8.0",
 
  "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
- "com.lihaoyi" %% "pprint" % "0.5.5",
+ "com.lihaoyi" %% "pprint" % "0.5.6",
  "com.lihaoyi" %% "fastparse" % "2.1.3",
  "io.circe" %% "circe-generic-extras" % circeVersion,
- "io.circe" %% "circe-optics" % circeVersion,
+ "io.circe" %% "circe-optics" % "0.12.0",//circeVersion,
  "com.lihaoyi" %% "requests" % "0.2.0",
  // Automatic type class instances derivation.
  "com.nrinaudo" %% "kantan.csv-java8" % kantanVersion,
@@ -53,7 +53,8 @@ libraryDependencies ++= Seq(
  "com.nrinaudo" %% "kantan.csv-generic" % kantanVersion,
  "org.json4s" %% "json4s-xml" % "3.6.7",
  "org.json4s" %% "json4s-native" % "3.6.7",
- "org.scalatest" %% "scalatest" % "3.0.8" % Test
+ "org.scalatest" %% "scalatest" % "3.0.8" % Test,
+ "com.lihaoyi" %% "ammonite-ops" % "1.8.1" % Test
 )
 
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
@@ -70,7 +71,7 @@ bintrayOrganization := Some("comp-bio-aging")
 
 licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
-dockerBaseImage := "oracle/graalvm-ce:19.1.1"
+dockerBaseImage := 	"oracle/graalvm-ce:19.2.0.1"
 
 daemonUserUid in Docker := None
 
