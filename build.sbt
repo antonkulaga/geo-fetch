@@ -10,7 +10,7 @@ organization := "group.aging-research"
 
 scalaVersion :=  "2.12.10"
 
-version := "0.0.11"
+version := "0.0.13"
 
 isSnapshot := false
 
@@ -53,8 +53,8 @@ libraryDependencies ++= Seq(
  "com.nrinaudo" %% "kantan.csv-generic" % kantanVersion,
  "org.json4s" %% "json4s-xml" % "3.6.7",
  "org.json4s" %% "json4s-native" % "3.6.7",
- "org.scalatest" %% "scalatest" % "3.0.8" % Test,
- "com.lihaoyi" %% "ammonite-ops" % "1.8.1" % Test
+ "com.lihaoyi" %% "ammonite-ops" % "1.8.1",
+ "org.scalatest" %% "scalatest" % "3.0.8" % Test
 )
 
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
@@ -71,7 +71,7 @@ bintrayOrganization := Some("comp-bio-aging")
 
 licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
-dockerBaseImage := 	"oracle/graalvm-ce:19.2.0.1"
+dockerBaseImage := 	"oracle/graalvm-ce:19.2.1"
 
 daemonUserUid in Docker := None
 

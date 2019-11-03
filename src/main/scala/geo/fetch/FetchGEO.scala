@@ -21,37 +21,15 @@ import better.files.File
 import geo.cli.CommandsBioProject
 import geo.models.RunInfo
 import kantan.csv.{CsvConfiguration, HeaderCodec, rfc}
-
+import geo.extras._
 import scala.xml.Elem
-
-object AnnotatedRun {
-  implicit val sampleCodec: HeaderCodec[AnnotatedRun] = HeaderCodec.caseCodec(
-    "bioproject", "series",		"run",
-    "organism",	"taxid",
-    "sample_name",	"sequencer",
-    "library_strategy", "library_layout",	"library_selection",
-    "study", "study_title",
-    "characteristics","source","age", "sex", "tumor",
-    "genes", "transcripts", "quant",
-    "protocol")(AnnotatedRun.apply)(AnnotatedRun.unapply)
-}
-case class AnnotatedRun(
-                         bioproject: String, series: String, run: String,
-                         organism: String, taxid: String,
-                         sample_name: String,  sequencer: String,
-                         library_strategy: String, library_layout: String, library_selection: String,
-                         study: String, study_title: String,
-                         characteristics: String, source: String, age: String, sex: String, tumor: String,
-                         genes: String, transcripts: String, quant: String,
-                         protocol: String
-                       )
 
 case class FetchGEO(apiKey: String = "") extends FetchGeoJSON {
   //implicit val client: CloseableHttpClient = HttpClientBuilder.create().disableCookieManagement().disableContentCompression().build()
   implicit val interpreter: InterpTrans[IO] = ApacheInterpreter.instance
 
 
-  def getAnnotatedRun(run: String, series: String = "", quantByGenes: String = "", quantByTranscripts: String = "", quant: String = "") = {
+  def getRunAnnotation(run: String, series: String = "") = {
     val runInfo = getSRA(run).head
     val e = getExperiment(runInfo.run.Experiment)
     val s = if(series!="") series else runInfo.run.Experiment
@@ -66,16 +44,13 @@ case class FetchGEO(apiKey: String = "") extends FetchGeoJSON {
     val source: String = att.get("tissue").orElse(att.get("cell type")).orElse(att.get("cell_type")).orElse(att.get("source_name")).getOrElse(subject.Body_Site)
 
 
-    AnnotatedRun(
+    RunAnnotation(
       runInfo.sample.BioProject, s, runInfo.run.Run,
       runInfo.sample.ScientificName, runInfo.sample.TaxID,
       runInfo.sample.SampleName, runInfo.sample.Model,
       runInfo.library.LibraryStrategy, runInfo.library.LibraryLayout, runInfo.library.LibrarySelection,
       e.study.accession, e.study.descriptor.study_title,
       characteristics, source, age,  sex , subject.Tumor,
-      quantByGenes,//getPathIf(run)(_.name.contains("genes_abundance.tsv")),
-      quantByTranscripts,//getPathIf(run)(_.name.contains("transcripts_abundance.tsv")),
-      quant,//getPathIf(run)(_.name.contains("quant_")),
       e.experiment.design.library_descriptor.library_construction_protocol
     )
   }

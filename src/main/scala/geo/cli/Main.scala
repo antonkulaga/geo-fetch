@@ -14,8 +14,11 @@ object Main extends CommandApp(
 )
 
 
-object MainCommand extends CommandsBioProject {
+object MainCommand extends CommandsBioProject with CommandsIndex {
 
-  lazy val mainCommand: Opts[Unit] = Opts.subcommand(fetch_sra) orElse Opts.subcommand(fetch_gsm) orElse Opts.subcommand(fetch_bioproject)
+  lazy val mainCommand: Opts[Unit] = Opts.subcommand(fetch_sra) orElse
+    Opts.subcommand(fetch_gsm) orElse
+    Opts.subcommand(fetch_bioproject) orElse
+    Opts.subcommand(samples_index)
 
 }

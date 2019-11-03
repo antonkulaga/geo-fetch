@@ -1,7 +1,7 @@
 package geo.extras
 
 import better.files.File
-import geo.fetch.{AnnotatedRun, FetchGEO}
+import geo.fetch.{FetchGEO}
 
 import scala.util.{Failure, Try}
 
@@ -28,8 +28,38 @@ trait SampleSummarizerLike {
   implicit val config: CsvConfiguration = rfc.withCellSeparator('\t').withHeader(true)
   def getPathIf(dir: File)(fun: File => Boolean) = dir.children.collectFirst{ case f if fun(f) => f.pathAsString }.getOrElse("")
 
-  def mergeExpressions(where: File, expressions: Seq[(String, File)], column: String) = if(expressions.nonEmpty){
-    val toc = expressions.head._2.lineIterator.map(l=>l.substring(0, l.indexOf("\t"))).zipWithIndex.toVector
+  def parseSalmon(file: File): Try[SalmonInfo] = {
+    parse(file.contentAsString).flatMap(json=>json.as[SalmonInfo]) match {
+      case Left(error) =>
+        println(s"FAILURE IN PARSON SALMON JSON with ${error.getMessage}")
+        Failure(error)
+      case Right(info) =>
+        Success(if(info.index.startsWith("/cromwell-executions/")) info.copy(index = File(info.index).name) else info)
+    }
+  }
+
+  def undot(transcript: String): String =       transcript.indexOf(".")
+  match {
+    case -1 => transcript
+    case i if i <= transcript.length -2 => transcript.substring(0, i) + transcript.substring(Math.max(i+2, transcript.indexOf(" ", i)))
+    case _ => transcript
+  }
+
+  /**
+    * Merges gene expressions in files
+    * @param outputFile the output file
+    * @param expressions
+    * @param column
+    */
+  def mergeExpressions(outputFile: File, expressions: Seq[(String, File)], column: String, stable: Boolean) = if(expressions.nonEmpty){
+    val toc = expressions.head
+      ._2
+      .lineIterator
+      .map{ case l=>
+        val t = l.substring(0, l.indexOf("\t"))
+      if(stable) undot(t) else t
+      }
+      .zipWithIndex.toVector
     val ee = expressions.map{ case (run, e)=>
       run -> e.lineIterator.map(l=>l.substring(l.indexOf("\t")+1)).toVector
     }
@@ -37,15 +67,15 @@ trait SampleSummarizerLike {
     for((f, d)<-discarded) {
       println(s"length of ${f} suggests that something is wrong as it is ${d.length} while ${toc.length} is expected!")
     }
-    where.createFileIfNotExists()
-    where.append(column + "\t")
-    for((run, _) <-taken) where.append(run + "\t")
-    where.append("\n")
+    outputFile.createFileIfNotExists()
+    outputFile.append(column + "\t")
+    for((run, _) <-taken) outputFile.append(run + "\t")
+    outputFile.append("\n")
     val exps = taken.map(_._2)
     for((t, i)<-toc){
-      where.append(t + "\t")
-      for(e <-exps) where.append(e(i) + "\t")
-      where.append("\n")
+      outputFile.append(t + "\t")
+      for(e <-exps) outputFile.append(e(i) + "\t")
+      outputFile.append("\n")
     }
   }
 
@@ -94,13 +124,39 @@ trait SampleSummarizerLike {
           runMeta.delete().createIfNotExists()
           prepareRunInfo(runMeta, seriesFolder.name, runFolder)(f)
         case Some(Right(value)) =>
+          /*
           value.copy(
             genes = getPathIf(runFolder)(_.name.contains("genes_abundance.tsv")),
             transcripts = getPathIf(runFolder)(_.name.contains("transcripts_abundance.tsv")),
             quant = getPathIf(runFolder)(_.name.contains("quant_"))
           )
+           */
+
+          val q = value.quantAnnotation
+          val quant_folder = runFolder / ("quant_" + seriesFolder.name + "_" + experimentFolder.name +  "_" + runFolder.name)
+
+          quant_folder match {
+            case folder if folder.isDirectory && folder.exists && folder.nonEmpty && (folder / "cmd_info.json").exists()=>
+              val cmd = folder / "cmd_info.json"
+              parseSalmon(cmd).map(s =>
+                 q.copy(
+                  genes = getPathIf(runFolder)(_.name.contains("genes_abundance.tsv")),
+                  transcripts = getPathIf(runFolder)(_.name.contains("transcripts_abundance.tsv")),
+                  quant = getPathIf(runFolder)(_.name.contains("quant_"))
+                ).withSalmonInfo(s)
+              ) match {
+                case Success(v) => value.copy(quantAnnotation = v)
+                case Failure(th) => println(s"Failure to parse salmon! ${th}")
+                  value
+              }
+            case f =>
+              println(s"NO SALMON QUANTIFICATION FOUND FOR ${runFolder}, the quantification is supposed to be inside ${f}!")
+              value
+          }
+
         case None =>
-          println(s"the file ${runMeta.pathAsString} is empty, writing it from NCBI API!")
+          println(s"the file ${runMeta.pathAsString} is empty or broken, writing it from NCBI API!")
+          //runMeta.clear()
           prepareRunInfo(runMeta, seriesFolder.name, runFolder)(f)
 
       }
@@ -114,17 +170,38 @@ trait SampleSummarizerLike {
     * @return
     */
   def prepareRunInfo(runMeta: File, series: String, runFolder: File)(implicit f: FetchGEO): AnnotatedRun = {
-    val runInfo = f.getAnnotatedRun(runFolder.name, series,
-      getPathIf(runFolder)(_.name.contains("genes_abundance.tsv")),
-      getPathIf(runFolder)(_.name.contains("transcripts_abundance.tsv")),
-      getPathIf(runFolder)(_.name.contains("quant_")),
-    )
+
+    val runInfo = f.getRunAnnotation(runFolder.name, series)
+    val quant_folder = runFolder / ("quant_" + series + "_" + runFolder.parent.name +  "_" + runFolder.name) //TODO FIX CODE DUPLICATION
+    val run = quant_folder match {
+      case folder if folder.isDirectory && folder.exists && folder.nonEmpty && (folder / "cmd_info.json").exists()=>
+        val cmd = folder / "cmd_info.json"
+        parseSalmon(cmd).map(s =>
+          QuantAnnotation(
+            getPathIf(runFolder)(_.name.contains("genes_abundance.tsv")),
+            getPathIf(runFolder)(_.name.contains("transcripts_abundance.tsv")),
+            getPathIf(runFolder)(_.name.contains("quant_")),
+            s.salmon_version,
+            s.libType,
+            s.index,
+            s.numBootstraps
+          )
+        ) match {
+          case Success(v) =>
+            AnnotatedRun(runInfo, v)
+          case Failure(th) => println(s"Failure to parse salmon quantification! ${th}")
+            AnnotatedRun(runInfo, QuantAnnotation.empty)
+        }
+      case f =>
+        println(s"NO SALMON QUANTIFICATION FOUND FOR ${runFolder}!")
+        AnnotatedRun(runInfo, QuantAnnotation.empty)
+    }
 
     //println(s"*******************************RUN INFO FOR ${}")
     //pprint.pprintln(runInfo)
     println(s"did not found metadata file for ${runFolder.name}, getting info from NCBI and writing to ${runMeta.pathAsString}")
-    runMeta.createIfNotExists().toJava.asCsvWriter[AnnotatedRun](config.withHeader).write(runInfo).close()
-    runInfo
+    runMeta.createIfNotExists().toJava.asCsvWriter[AnnotatedRun](config.withHeader).write(run).close()
+    run
   }
 
 }

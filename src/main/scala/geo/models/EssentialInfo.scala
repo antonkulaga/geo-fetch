@@ -1,5 +1,7 @@
 package geo.models
 
+import io.circe.generic.extras.{Configuration, ConfiguredJsonCodec}
+import kantan.csv.HeaderCodec
 
 import kantan.csv._
 import kantan.csv.ops._
