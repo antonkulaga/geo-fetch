@@ -26,7 +26,7 @@ trait SampleSummarizerLike {
 
 
   implicit val config: CsvConfiguration = rfc.withCellSeparator('\t').withHeader(true)
-  def getPathIf(dir: File)(fun: File => Boolean) = dir.children.collectFirst{ case f if fun(f) => f.pathAsString }.getOrElse("")
+  def getPathIf(dir: File)(fun: File => Boolean): String = dir.children.collectFirst{ case f if fun(f) => f.pathAsString }.getOrElse("")
 
   def parseSalmon(file: File): Try[SalmonInfo] = {
     parse(file.contentAsString).flatMap(json=>json.as[SalmonInfo]) match {
@@ -51,13 +51,13 @@ trait SampleSummarizerLike {
     * @param expressions
     * @param column
     */
-  def mergeExpressions(outputFile: File, expressions: Seq[(String, File)], column: String, stable: Boolean) = if(expressions.nonEmpty){
+  def mergeExpressions(outputFile: File, expressions: Seq[(String, File)], column: String, stable: Boolean, verbose: Boolean) = if(expressions.nonEmpty){
     val toc = expressions.head
       ._2
       .lineIterator
-      .map{ case l=>
+      .map { l =>
         val t = l.substring(0, l.indexOf("\t"))
-      if(stable) undot(t) else t
+        if (stable) undot(t) else t
       }
       .zipWithIndex.toVector
     val ee = expressions.map{ case (run, e)=>
@@ -176,17 +176,21 @@ trait SampleSummarizerLike {
     val run = quant_folder match {
       case folder if folder.isDirectory && folder.exists && folder.nonEmpty && (folder / "cmd_info.json").exists()=>
         val cmd = folder / "cmd_info.json"
-        parseSalmon(cmd).map(s =>
+        parseSalmon(cmd).map{ case s =>
+          val quant = getPathIf(runFolder)(_.name.contains("quant_"))
+          val q = File(quant)//.attributes.lastModifiedTime
+          val modified = if(q.exists) { q.attributes.lastModifiedTime().toInstant.toString } else { "" }
           QuantAnnotation(
+            s.salmon_version,
+            s.index,
             getPathIf(runFolder)(_.name.contains("genes_abundance.tsv")),
             getPathIf(runFolder)(_.name.contains("transcripts_abundance.tsv")),
-            getPathIf(runFolder)(_.name.contains("quant_")),
-            s.salmon_version,
+            quant,
             s.libType,
-            s.index,
-            s.numBootstraps
+            s.numBootstraps,
+            modified
           )
-        ) match {
+        } match {
           case Success(v) =>
             AnnotatedRun(runInfo, v)
           case Failure(th) => println(s"Failure to parse salmon quantification! ${th}")

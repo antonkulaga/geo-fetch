@@ -14,9 +14,19 @@ import kantan.codecs.Encoder     // Enriches types with useful methods.
 package object extras {
   implicit val customConfig: Configuration = Configuration.default.withDefaults
 
-  @ConfiguredJsonCodec case class SalmonInfo(salmon_version: String,index: String, numBootstraps: String, threads: String, libType: String, seqBias: List[String] = Nil
-                                             , gcBias: List[String] = Nil,validateMappings: List[String] = Nil,
-                                             rangeFactorizationBins: String = "transcripts_quant", output: String, unmatedReads: String, auxDir: String = "aux_info"
+  @ConfiguredJsonCodec case class SalmonInfo(salmon_version: String,
+                                             index: String,
+                                             numBootstraps: String,
+                                             threads: String,
+                                             libType: String,
+                                             seqBias: List[String] = Nil,
+                                             gcBias: List[String] = Nil,
+                                             validateMappings: List[String] = Nil,
+                                             rangeFactorizationBins: String = "transcripts_quant",
+                                             output: String,
+                                             unmatedReads: String,
+                                             auxDir: String = "aux_info",
+                                             modified: String = ""
                                             )
 
   object RunAnnotation {
@@ -37,17 +47,18 @@ package object extras {
                         study: String, study_title: String,
                         characteristics: String, source: String, age: String, sex: String, tumor: String, protocol: String
                       )
+
   object QuantAnnotation {
     implicit val quantCodec: HeaderCodec[QuantAnnotation] = HeaderCodec.caseCodec(
        "salmon_version",
-      "index", "genes", "transcripts", "quant", "libType",  "numBootstraps")(QuantAnnotation.apply)(QuantAnnotation.unapply)
-    lazy val empty = QuantAnnotation("", "", "", "", "", "", "")
+      "index", "genes", "transcripts", "quant", "libType",  "numBootstraps", "modified")(QuantAnnotation.apply)(QuantAnnotation.unapply)
+    lazy val empty = QuantAnnotation("", "", "", "", "", "", "", "")
   }
 
   case class QuantAnnotation(salmon_version: String,
-                              index: String, genes: String, transcripts: String, quant: String, libType: String, numBootstraps: String)  {
-    def withSalmonInfo(salmonInfo: SalmonInfo) = {
-      copy(salmon_version = salmonInfo.salmon_version, libType = salmonInfo.libType, index = salmonInfo.index, numBootstraps = salmonInfo.numBootstraps)
+                              index: String, genes: String, transcripts: String, quant: String, libType: String, numBootstraps: String, modified: String)  {
+    def withSalmonInfo(salmonInfo: SalmonInfo): QuantAnnotation = {
+      copy(salmon_version = salmonInfo.salmon_version,  index = salmonInfo.index, libType = salmonInfo.libType, numBootstraps = salmonInfo.numBootstraps)
     }
 
     def isEmpty: Boolean = QuantAnnotation.empty == this

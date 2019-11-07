@@ -30,7 +30,7 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
   val species_indexes: Opts[Option[String]] = Opts.option[String]("species_indexes", "folder to write the indexes of species").orNone.withDefault(None)
   val rewrite: Opts[Boolean] = Opts.flag("rewrite", short = "r", help = "Should we rewrite already existing files?").orFalse
   val stable: Opts[Boolean] = Opts.flag("stable", short = "s", help = "Get's rid of unstable Ensemble id's").orTrue
-
+  val verbose: Opts[Boolean] = Opts.flag("verbose", short = "v", help = "Prints more to the logs").orFalse
   val ignore: Opts[List[Path]] = Opts.options[Path]("ignore", help = "ignore folders when building index").orEmpty
 
 
@@ -48,7 +48,8 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
                          species_indexes: Option[File],
                          runs: Seq[AnnotatedRun],
                          mergeTPMs: Boolean,
-                         stable: Boolean
+                         stable: Boolean,
+                         verbose: Boolean
                         ) = {
     println(s"WRITING RUNS TO ${index.pathAsString}")
     index.createFileIfNotExists().toJava.asCsvWriter[AnnotatedRun](config.withHeader).write(runs).close()
@@ -74,10 +75,19 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
           if(mergeTPMs){
             val trs = species_ind / (sp + "_transcripts.tsv")
             println(s"writing merged transcripts to ${trs.pathAsString}")
-            mergeExpressions(trs, runs.map(r=>r.runAnnotation.run ->File(r.quantAnnotation.transcripts)), "transcripts", stable)
+            mergeExpressions(trs, runs
+              .filter(r=>File(r.quantAnnotation.transcripts).exists)
+              .map(r=>r.runAnnotation.run ->File(r.quantAnnotation.transcripts)), "transcripts",
+              stable, verbose)
             val gs = (species_ind / (sp + "_genes.tsv"))
             println(s"writing merged gene expressions to ${trs.pathAsString}")
-            mergeExpressions(gs, runs.map(r=>r.runAnnotation.run ->File(r.quantAnnotation.genes)), "genes", stable)
+            mergeExpressions(gs,
+              runs.filter{case r=>
+                val f = File(r.quantAnnotation.genes)
+                f.exists && f.nonEmpty
+              }
+                .map(r=>r.runAnnotation.run ->File(r.quantAnnotation.genes)
+              ), "genes", stable, verbose)
           }
         }
 
@@ -92,6 +102,7 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
                     key: String,
                     rewrite: Boolean,
                     stable: Boolean,
+                    verbose: Boolean,
                     ignore: Seq[Path] = Vector.empty
           ) = {
     implicit val f = FetchGEO(key)
@@ -124,14 +135,14 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
     }
 
 
-    writeAnnotatedRuns(indexFile, speciesFile, runs, mergeTPMs = speciesFile.isDefined, stable)
+    writeAnnotatedRuns(indexFile, speciesFile, runs, mergeTPMs = speciesFile.isDefined, stable, verbose)
     println("INDEX SUCCESSFULLY CREATED at " + indexFile.pathAsString)
   }
 
   protected lazy val samples_index: Command[Unit] = Command(
     name = "samples_index",
     header = "Summarizes gene expressions"){
-    (base, index, species_indexes, key, rewrite, stable, ignore).mapN(samples_table)
+    (base, index, species_indexes, key, rewrite, stable, verbose, ignore).mapN(samples_table)
   }
 
 
