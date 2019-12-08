@@ -1,6 +1,6 @@
 package geo.cli
 //import ammonite.ops._
-import better.files._
+import better.files.{File, _}
 import File._
 import java.io.{File => JFile}
 import java.nio.file.Paths
@@ -11,8 +11,10 @@ import geo.fetch.{FetchGEO, _}
 import kantan.csv.ops._
 import cats.implicits._
 import com.monovore.decline._
+
 import scala.util._
 import geo.extras._
+
 trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
 
   //protected lazy val essential: Opts[Boolean] = Opts.flag("essential", help = "Include only the most important information about the run", "e").orFalse
@@ -55,9 +57,11 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
     index.createFileIfNotExists().toJava.asCsvWriter[AnnotatedRun](config.withHeader).write(runs).close()
     species_indexes match {
       case Some(species_indexes_path) if species_indexes_path.isDirectory =>
-        val species_ind = species_indexes_path.createDirectoryIfNotExists()
+        val species_ind: File = species_indexes_path.createDirectoryIfNotExists()
         val by_species = runs.groupBy{a=>
-          val str = if(File(a.quantAnnotation.index).exists) a.runAnnotation.organism else  a.runAnnotation.organism + "_" +File(a.quantAnnotation.index).name+  "_salmon_"+ a.quantAnnotation.salmon_version
+          val str: String = if(File(a.quantAnnotation.index).exists)
+            a.runAnnotation.organism
+            else  a.runAnnotation.organism + "_" +File(a.quantAnnotation.index).name+  "_salmon_"+ a.quantAnnotation.salmon_version
           str
         }
         for ((species_name, rs) <- by_species) {
@@ -73,26 +77,46 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
               case _ =>
             }
           if(mergeTPMs){
-            val trs = species_ind / (sp + "_transcripts.tsv")
-            println(s"writing merged transcripts to ${trs.pathAsString}")
-            mergeExpressions(trs, runs
-              .filter(r=>File(r.quantAnnotation.transcripts).exists)
-              .map(r=>r.runAnnotation.run ->File(r.quantAnnotation.transcripts)), "transcripts",
-              stable, verbose)
-            val gs = (species_ind / (sp + "_genes.tsv"))
-            println(s"writing merged gene expressions to ${trs.pathAsString}")
-            mergeExpressions(gs,
-              runs.filter{case r=>
-                val f = File(r.quantAnnotation.genes)
-                f.exists && f.nonEmpty
-              }
-                .map(r=>r.runAnnotation.run ->File(r.quantAnnotation.genes)
-              ), "genes", stable, verbose)
+            mergeTranscriptFiles(runs, stable, verbose, species_ind, sp)
+            mergeGenesFiles(runs, stable, verbose, species_ind, sp)
           }
         }
 
       case None =>
         println("As species index")
+    }
+  }
+  protected def mergeTranscriptFiles(runs: Seq[AnnotatedRun], stable: Boolean, verbose: Boolean, species_ind: File, sp: String): Unit = {
+    val transcriptFiles = runs.map(r => r.runAnnotation.run -> File(r.quantAnnotation.transcripts))
+      .filter { case (_, f) =>
+        val isFolder = f.isDirectory
+        if (isFolder) println(s"${f} is a directory but should be Folder")
+        f.exists && !isFolder
+      }
+    val groupedTranscripts = transcriptFiles.groupBy(_._2.lines.size)
+    for {
+      (i, values) <- groupedTranscripts
+    } {
+      val trs = if (groupedTranscripts.size == 1) species_ind / (sp + "_transcripts.tsv") else species_ind / (sp + s"_transcripts_${i}.tsv")
+      println(s"writing merged transcripts to ${trs.pathAsString}")
+      mergeExpressions(trs, values, "transcripts", stable, verbose)
+    }
+  }
+
+  protected def mergeGenesFiles(runs: Seq[AnnotatedRun], stable: Boolean, verbose: Boolean, species_ind: File, sp: String): Unit = {
+    val geneFiles = runs.map(r => r.runAnnotation.run -> File(r.quantAnnotation.genes))
+      .filter { case (_, f) =>
+        val isFolder = f.isDirectory
+        if (isFolder) println(s"${f} is a directory but should be Folder")
+        f.exists && !isFolder
+      }
+    val groupedGenes = geneFiles.groupBy(_._2.lines.size)
+    for {
+      (i, values) <- groupedGenes
+    } {
+      val gs = if (groupedGenes.size == 1) species_ind / (sp + "_genes.tsv") else species_ind / (sp + s"_genes_${i}.tsv")
+      println(s"writing merged genes to ${gs.pathAsString}")
+      mergeExpressions(gs, values, "genes", stable, verbose)
     }
   }
 

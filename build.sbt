@@ -10,7 +10,7 @@ organization := "group.aging-research"
 
 scalaVersion :=  "2.12.10"
 
-version := "0.0.13"
+version := "0.0.15"
 
 isSnapshot := false
 
@@ -38,7 +38,7 @@ libraryDependencies ++= Seq(
  "com.monovore" %% "decline-refined" % "1.0.0",
  "com.pepegar" %% "hammock-apache-http" % hammockVersion,
  "com.pepegar" %% "hammock-circe" % hammockVersion,
- "org.wvlet.airframe" %% "airframe-log" % "19.10.1",
+ "org.wvlet.airframe" %% "airframe-log" % "19.11.1",
  "com.github.pathikrit" %% "better-files" % "3.8.0", "com.github.pathikrit" %% "better-files" % "3.8.0",
 
  "org.scala-lang.modules" %% "scala-xml" % "1.2.0",

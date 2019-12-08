@@ -52,6 +52,9 @@ trait SampleSummarizerLike {
     * @param column
     */
   def mergeExpressions(outputFile: File, expressions: Seq[(String, File)], column: String, stable: Boolean, verbose: Boolean) = if(expressions.nonEmpty){
+    val ee = expressions.map{ case (run, e)=>
+      run -> e.lineIterator.map(l=>l.substring(l.indexOf("\t")+1)).toVector
+    }
     val toc = expressions.head
       ._2
       .lineIterator
@@ -60,9 +63,7 @@ trait SampleSummarizerLike {
         if (stable) undot(t) else t
       }
       .zipWithIndex.toVector
-    val ee = expressions.map{ case (run, e)=>
-      run -> e.lineIterator.map(l=>l.substring(l.indexOf("\t")+1)).toVector
-    }
+
     val (taken, discarded) = ee.partition{ case (_, v)  => v.length == toc.length}
     for((f, d)<-discarded) {
       println(s"length of ${f} suggests that something is wrong as it is ${d.length} while ${toc.length} is expected!")
@@ -88,7 +89,9 @@ trait SampleSummarizerLike {
     */
   def processExperiment(seriesFolder: File, experimentFolder: File, rewrite: Boolean)(implicit f: FetchGEO): Vector[AnnotatedRun] = {
     println("Experiment = " + experimentFolder.name)
-    if (rewrite || !(experimentFolder.children.exists(_.name == experimentFolder.name + ".json") && experimentFolder.children.exists(_.name == experimentFolder.name + "_runs.tsv"))) {
+    if (rewrite || !(experimentFolder.children.exists(_.name == experimentFolder.name + ".json")
+      && experimentFolder.children.exists(_.name == experimentFolder.name + "_runs.tsv")))
+    {
       println("cannot find " + experimentFolder.name + ".json, creating it from scratch!")
       Try {
         val uname = experimentFolder.name.toUpperCase
@@ -120,7 +123,7 @@ trait SampleSummarizerLike {
       val metas =runMeta.toJava.asCsvReader[AnnotatedRun](config).toList
       metas.headOption match {
         case Some(Left(err)) =>
-          println(s"could not read ${runMeta.pathAsString} because of ${err}")
+          println(s"could not read ${runMeta.pathAsString} because of ${err} , rewriting runinfo from scratch")
           runMeta.delete().createIfNotExists()
           prepareRunInfo(runMeta, seriesFolder.name, runFolder)(f)
         case Some(Right(value)) =>

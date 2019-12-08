@@ -24,7 +24,7 @@ package object extras {
                                              validateMappings: List[String] = Nil,
                                              rangeFactorizationBins: String = "transcripts_quant",
                                              output: String,
-                                             unmatedReads: String,
+                                             unmatedReads: String = "",
                                              auxDir: String = "aux_info",
                                              modified: String = ""
                                             )
