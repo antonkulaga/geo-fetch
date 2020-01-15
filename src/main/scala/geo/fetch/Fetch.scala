@@ -1,13 +1,9 @@
 package geo.fetch
 import cats.effect.IO
-import io.circe.generic.auto._
-import hammock.marshalling._
-import hammock._
-import hammock.apache.ApacheInterpreter
-import hammock.circe.implicits._
-import io.circe._
-import Xml._
 import geo.models.RunInfo
+import hammock._
+import io.circe.Xml._
+import io.circe._
 
 import scala.xml.Elem
 
@@ -51,6 +47,7 @@ trait FetchJSON extends FetchXML {
   def fetch_unists_json(id: String): IO[Json] = fetch_json("unists", id)
 
   def fetch_json(db: String, id: String): IO[Json] = fetch_xml(db, id).map(e=>e.toJson)
+  def xml2json(xml: IO[Elem]): IO[Json] = xml.map(e=>e.toJson)
 }
 
 /**

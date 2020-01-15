@@ -1,27 +1,17 @@
 package geo.fetch
 import cats.effect.IO
-import io.circe.generic.auto._
-import hammock._
-import hammock.marshalling._
-import hammock._
-import hammock.apache.ApacheInterpreter
-import hammock.circe.implicits._
-import io.circe._
-import Xml._
 import fastparse.Parsed
+import geo.extras._
 import geo.models.BioProject.ExperimentSet.ExperimentPackage
 import geo.models.{BioProject, GSM, RunInfo}
-import hammock.Entity.StringEntity
+import hammock._
+import hammock.apache.ApacheInterpreter
 import io.circe.Decoder.Result
+import io.circe.Xml._
+import io.circe._
 import io.circe.optics.JsonPath.root
-import kantan.csv.HeaderCodec
-import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder}
 
-import better.files.File
-import geo.cli.CommandsBioProject
-import geo.models.RunInfo
-import kantan.csv.{CsvConfiguration, HeaderCodec, rfc}
-import geo.extras._
+import scala.util.{Failure, Success, Try}
 import scala.xml.Elem
 
 case class FetchGEO(apiKey: String = "") extends FetchGeoJSON {
@@ -29,7 +19,7 @@ case class FetchGEO(apiKey: String = "") extends FetchGeoJSON {
   implicit val interpreter: InterpTrans[IO] = ApacheInterpreter.instance
 
 
-  def getRunAnnotation(run: String, series: String = "") = {
+  def getRunAnnotation(run: String, series: String = ""): RunAnnotation = {
     val runInfo = getSRA(run).head
     val e = getExperiment(runInfo.run.Experiment)
     val s = if(series!="") series else runInfo.run.Experiment
@@ -91,8 +81,12 @@ trait FetchGeoJSON extends FetchGeoXML with FetchJSON {
   protected val exp = root.`EXPERIMENT_PACKAGE_SET`.`EXPERIMENT_PACKAGE`.json
 
 
-
-  def runsFromExperiment(e: BioProject.ExperimentSet.ExperimentPackage) = {
+  /**
+    * Feathres runs based on accession taken from experiment
+    * @param e
+    * @return
+    */
+  def runsFromExperiment(e: BioProject.ExperimentSet.ExperimentPackage): (ExperimentPackage, Vector[RunInfo]) = {
     e -> getSRA(e.experiment.accession)
   }
 
@@ -100,8 +94,15 @@ trait FetchGeoJSON extends FetchGeoXML with FetchJSON {
     exp.experiments.map(runsFromExperiment)
   }
 
+  def tryParseExperiment(json: Json): Try[ExperimentPackage] = {
+    exp.getOption(json).map(_.as[BioProject.ExperimentSet.ExperimentPackage]) match {
+      case Some(Left(failure)) => Failure(failure)
+      case Some(Right(value)) => Success(value)
+      case None => Failure(new Exception("Experiment id not found in the json!"))
+    }
+  }
 
-  def parseExperiment(json: Json): ExperimentPackage = {
+  def parseExperimentUnsafe(json: Json): ExperimentPackage = {
     exp.getOption(json).map(_.as[BioProject.ExperimentSet.ExperimentPackage]).map{
       case Right(value) => value
     }.get
@@ -109,7 +110,7 @@ trait FetchGeoJSON extends FetchGeoXML with FetchJSON {
 
   def getExperiment(id: String): ExperimentPackage = {
     val json = fetch_bioproject_json(id).unsafeRunSync()
-    parseExperiment(json)
+    parseExperimentUnsafe(json)
   }
 
   def parseBioProject(json: Json): BioProject.ExperimentSet = {

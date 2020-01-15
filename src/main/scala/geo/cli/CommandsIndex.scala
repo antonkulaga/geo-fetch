@@ -32,6 +32,7 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
   val species_indexes: Opts[Option[String]] = Opts.option[String]("species_indexes", "folder to write the indexes of species").orNone.withDefault(None)
   val rewrite: Opts[Boolean] = Opts.flag("rewrite", short = "r", help = "Should we rewrite already existing files?").orFalse
   val stable: Opts[Boolean] = Opts.flag("stable", short = "s", help = "Get's rid of unstable Ensemble id's").orTrue
+  val merge_expressions: Opts[Boolean] = Opts.flag("merge_expressions", short = "m", help = "Merges expressions by species").orFalse
   val verbose: Opts[Boolean] = Opts.flag("verbose", short = "v", help = "Prints more to the logs").orFalse
   val ignore: Opts[List[Path]] = Opts.options[Path]("ignore", help = "ignore folders when building index").orEmpty
 
@@ -49,7 +50,7 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
   def writeAnnotatedRuns(index: File,
                          species_indexes: Option[File],
                          runs: Seq[AnnotatedRun],
-                         mergeTPMs: Boolean,
+                         mergeTPMs: Boolean, //NOTE unreliable by now
                          stable: Boolean,
                          verbose: Boolean
                         ) = {
@@ -120,6 +121,18 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
     }
   }
 
+  /**
+    * Writes down samples.tsv with index of all samples
+    * @param base
+    * @param index
+    * @param species_indexes
+    * @param key
+    * @param rewrite
+    * @param stable
+    * @param verbose
+    * @param merge_expressions
+    * @param ignore
+    */
   def samples_table(base: Path,
                     index: String,
                     species_indexes: Option[String],
@@ -127,8 +140,9 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
                     rewrite: Boolean,
                     stable: Boolean,
                     verbose: Boolean,
+                    merge_expressions: Boolean = false,
                     ignore: Seq[Path] = Vector.empty
-          ) = {
+          ): Unit = {
     implicit val f = FetchGEO(key)
     val rt = base.toFile.toScala
     val indexFile: File = index match {
@@ -158,15 +172,14 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
         }
     }
 
-
-    writeAnnotatedRuns(indexFile, speciesFile, runs, mergeTPMs = speciesFile.isDefined, stable, verbose)
+    writeAnnotatedRuns(indexFile, speciesFile, runs, mergeTPMs = merge_expressions, stable, verbose)
     println("INDEX SUCCESSFULLY CREATED at " + indexFile.pathAsString)
   }
 
   protected lazy val samples_index: Command[Unit] = Command(
     name = "samples_index",
     header = "Summarizes gene expressions"){
-    (base, index, species_indexes, key, rewrite, stable, verbose, ignore).mapN(samples_table)
+    (base, index, species_indexes, key, rewrite, stable, verbose, merge_expressions, ignore).mapN(samples_table)
   }
 
 

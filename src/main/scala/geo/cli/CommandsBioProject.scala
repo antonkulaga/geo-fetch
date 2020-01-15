@@ -8,6 +8,8 @@ import io.circe.syntax._
 import kantan.csv._
 import kantan.csv.ops._
 
+import scala.util.{Failure, Success, Try}
+
 object CommandsBioProject extends CommandsBioProject
 class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
 
@@ -27,7 +29,10 @@ class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
     */
   protected def fetchBioJSON(pro: String, output: String)(implicit f: FetchGEO): Json = {
     println(s"fetching bioproject $pro json to ${output} ...")
-    val bioJs = f.fetch_bioproject_json(pro).unsafeRunSync()
+    val bioXML = f.fetch_bioproject_xml(pro).unsafeRunSync()
+    import io.circe.Xml._
+    val bioJs = bioXML.toJson
+    if(output.endsWith(".json")) printOrSave(bioXML.toString, output.replace(".json", ".xml"))
     printOrSave(bioJs.toString, output)
     bioJs
   }
@@ -41,15 +46,24 @@ class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
     * @param essential
     */
   def fetchExperiment(pro: String, key: String, o: String, runsPath: String, essential: Boolean): Unit = {
-    implicit val f =  FetchGEO(key)
+    implicit val f: FetchGEO =  FetchGEO(key)
     val bioJs = fetchBioJSON(pro, o)
-    val (e, runs) = f.runsFromExperiment(f.parseExperiment(bioJs))
-    if(essential) {
-      val info = EssentialInfo.extract(pro, e.experiment.accession, runs, e.experiment.title, e.sample.sample_attributes.characteristics)
-      //.asCsv(rfc.withCellSeparator('\t'))
-      val str = if(runsPath.endsWith(".json")) info.asJson.spaces2 else info.asCsv(rfc.withCellSeparator('\t').withHeader)
-      printOrSave(str, runsPath)
-    } else printOrSave(runs.asJson.spaces2, runsPath)
+    f.tryParseExperiment(bioJs) match {
+      case Success(value) =>
+        val (e, runs) = f.runsFromExperiment(value)
+        if(essential) {
+          val info = EssentialInfo.extract(pro, e.experiment.accession, runs, e.experiment.title, e.sample.sample_attributes.characteristics)
+          //.asCsv(rfc.withCellSeparator('\t'))
+          val str = if(runsPath.endsWith(".json")) info.asJson.spaces2 else info.asCsv(rfc.withCellSeparator('\t').withHeader)
+          printOrSave(str, runsPath)
+        } else printOrSave(runs.asJson.spaces2, runsPath)
+
+      case Failure(exception) =>
+        println(s"FAILED parsing experiment package ${pro}")
+        println("error: "+exception.getMessage)
+        println("JSON:")
+        println(bioJs)
+    }
   }
 
   def fetchBioProject(pro: String, key: String, o: String, runsPath: String, essential: Boolean): Unit = if(pro.toUpperCase.startsWith("SRX") || pro.toUpperCase.startsWith("ERX"))
