@@ -182,10 +182,47 @@ object BioProject {
                     )
 
     @ConfiguredJsonCodec case class SampleAttribute(tag: String, value: String)
-    @ConfiguredJsonCodec case class SampleAttributes(
+
+
+    import io.circe.{ Decoder, Encoder, HCursor, Json }
+
+    class Thing(val foo: String, val bar: Int)
+
+    implicit val decodeAttributes: Decoder[SampleAttributes] = new Decoder[SampleAttributes] {
+      final def apply(c: HCursor): Decoder.Result[SampleAttributes] = {
+        val d = c.downField("SAMPLE_ATTRIBUTE")
+        for {
+          att <-
+            if(d.focus.isEmpty) {
+              Right(Vector.empty[SampleAttribute])
+            } else if(d.focus.exists(_.isObject))  {
+              d.as[SampleAttribute].map(Vector(_))
+            } else {
+              d.as[Vector[SampleAttribute]]
+            }
+
+        } yield {
+          SampleAttributes(att)
+        }
+      }
+    }
+
+
+    implicit val encodeAttributes: Encoder[SampleAttributes] = new Encoder[SampleAttributes] {
+      final def apply(a: SampleAttributes): Json = {
+        import io.circe.syntax._
+        val ats = a.sample_attribute.map(_.asJson)
+        Json.obj(
+          ("sample_attribute".toUpperCase, Json.arr(ats:_*))
+        )
+      }
+    }
+
+    case class SampleAttributes(
                                  sample_attribute: Vector[SampleAttribute]
                                )
     {
+
       lazy val attributes: Map[String, String] = sample_attribute.map(a=> a.tag -> a.value).toMap
       lazy val characteristics = sample_attribute.map(a=>a.tag + ":" + a.value).mkString(";")
     }
@@ -285,6 +322,40 @@ object BioProject {
                                                        run_set: Json)
   }
   import ExperimentSet._
+
+
+
+  implicit val decodeExperimentSet: Decoder[ExperimentSet] = new Decoder[ExperimentSet] {
+    final def apply(c: HCursor): Decoder.Result[ExperimentSet] = {
+      val d = c.downField("experiments".toUpperCase)
+      for {
+        att <-
+          if(d.focus.isEmpty) {
+            Right(Vector.empty[ExperimentPackage])
+          } else if(d.focus.exists(_.isObject))  {
+            d.as[ExperimentPackage].map(Vector(_))
+          } else {
+            d.as[Vector[ExperimentPackage]]
+          }
+
+      } yield {
+        ExperimentSet(att)
+      }
+    }
+  }
+
+
+  implicit val encodeAttributes: Encoder[ExperimentSet] = new Encoder[ExperimentSet] {
+    final def apply(a: ExperimentSet): Json = {
+      import io.circe.syntax._
+      val ats = a.experiments.map(_.asJson)
+      Json.obj(
+        (("experiments" +
+          "").toUpperCase, Json.arr(ats:_*))
+      )
+    }
+  }
+
   @ConfiguredJsonCodec case class ExperimentSet(experiments: Vector[ExperimentPackage])
   {
     lazy val experimentIds: Vector[String] = experiments.map(_.experiment.accession)

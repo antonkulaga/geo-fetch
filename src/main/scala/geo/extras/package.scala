@@ -51,14 +51,16 @@ package object extras {
   object QuantAnnotation {
     implicit val quantCodec: HeaderCodec[QuantAnnotation] = HeaderCodec.caseCodec(
        "salmon_version",
-      "index", "genes", "transcripts", "quant", "libType",  "numBootstraps", "modified")(QuantAnnotation.apply)(QuantAnnotation.unapply)
-    lazy val empty = QuantAnnotation("", "", "", "", "", "", "", "")
+      "index", "genes", "transcripts", "quant",  "percent_mapped","libType", "numBootstraps", "modified")(QuantAnnotation.apply)(QuantAnnotation.unapply)
+    lazy val empty = QuantAnnotation("", "", "", "", "", "", "", "", "")
   }
 
   case class QuantAnnotation(salmon_version: String,
-                              index: String, genes: String, transcripts: String, quant: String, libType: String, numBootstraps: String, modified: String)  {
+                             index: String, genes: String, transcripts: String, quant: String,
+                             percent_mapped: String, libType: String, numBootstraps: String, modified: String)  {
     def withSalmonInfo(salmonInfo: SalmonInfo): QuantAnnotation = {
-      copy(salmon_version = salmonInfo.salmon_version,  index = salmonInfo.index, libType = salmonInfo.libType, numBootstraps = salmonInfo.numBootstraps)
+      copy(salmon_version = salmonInfo.salmon_version,  index = salmonInfo.index, libType = salmonInfo.libType,
+        numBootstraps = salmonInfo.numBootstraps)
     }
 
     def isEmpty: Boolean = QuantAnnotation.empty == this
@@ -83,7 +85,7 @@ package object extras {
         q <- QuantAnnotation.quantCodec.fromHeader(headers)
       } yield
         // Merge these two decoders into a single RowDecoder
-        RowDecoder.from { row ⇒
+        RowDecoder.from { row =>
           for {
             runAnnotation <- a.decode(row)
             quantAnnotation <- q.decode(row)

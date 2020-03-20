@@ -16,7 +16,7 @@ trait CommandSra extends FetchCommand {
     val f = FetchGEO(key)
     format.toLowerCase match {
       case "soft" | "txt" | "text" | "runinfo" =>
-        val run_str = f.fetch_sra_runinfo(sra).replace("\r\n", "\n")
+        val run_str = f.get_sra_runinfo(sra).replace("\r\n", "\n")
         val info = RunInfo.fromCSV(run_str)
         if(o.endsWith("flat.json")){
           val strs = info.map(_.toFlatJSON.spaces2)
@@ -42,11 +42,11 @@ trait CommandSra extends FetchCommand {
           printOrSave(run_str.replace(",", "\t"), o)
         }
       case "json" =>
-        val result = f.fetch_sra_json(sra).unsafeRunSync().toString
+        val result = f.unsafe(f.fetch_sra_json(sra)).toString
         printOrSave(result, o)
 
       case "xml" =>
-        val result = f.fetch_sra_xml(sra).unsafeRunSync().toString
+        val result = f.unsafe(f.fetch_sra_xml(sra)).toString
         printOrSave(result, o)
       case _ => this.error(s"unknown format ${format} for ${sra} with output ${o}")
 

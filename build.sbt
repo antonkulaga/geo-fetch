@@ -8,9 +8,9 @@ name := "geo-fetch"
 
 organization := "group.aging-research"
 
-scalaVersion :=  "2.12.10"
+scalaVersion :=  "2.13.1"
 
-version := "0.0.16"
+version := "0.1.0"
 
 isSnapshot := false
 
@@ -24,36 +24,46 @@ unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
 
 resolvers += Resolver.bintrayRepo("comp-bio-aging", "main")
 
-addCompilerPlugin(("org.scalamacros" %% "paradise" % "2.1.1").cross(CrossVersion.full))
+scalacOptions ++= Seq(
+ "-deprecation",
+ "-feature",
+ "-unchecked",
+ "-language:implicitConversions",
+ "-language:higherKinds",
+ "-language:existentials",
+ "-language:postfixOps",
+ "-Ymacro-annotations"
+)
 
-lazy val hammockVersion = "0.10.0"
 
-lazy val circeVersion = "0.12.2"
+
+lazy val circeVersion = "0.13.0"
 
 lazy val kantanVersion = "0.6.0"
 
 libraryDependencies ++= Seq(
- "org.typelevel" %% "cats-core" % "2.1.0",
+ "org.typelevel" %% "cats-core" % "2.1.1",
  "com.monovore" %% "decline" % "1.0.0",
  "com.monovore" %% "decline-refined" % "1.0.0",
- "com.pepegar" %% "hammock-apache-http" % hammockVersion,
- "com.pepegar" %% "hammock-circe" % hammockVersion,
- "org.wvlet.airframe" %% "airframe-log" % "19.12.4",
+ "org.wvlet.airframe" %% "airframe-log" % "20.3.0",
  "com.github.pathikrit" %% "better-files" % "3.8.0", "com.github.pathikrit" %% "better-files" % "3.8.0",
- "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
- "com.lihaoyi" %% "pprint" % "0.5.8",
- "com.lihaoyi" %% "fastparse" % "2.2.3",
+ "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
+ "com.lihaoyi" %% "pprint" % "0.5.9",
+ "com.lihaoyi" %% "fastparse" % "2.2.4",
  "io.circe" %% "circe-generic-extras" % circeVersion,
- "io.circe" %% "circe-optics" % "0.12.0",//circeVersion,
- "com.lihaoyi" %% "requests" % "0.5.0",
- // Automatic type class instances derivation.
+ "io.circe" %% "circe-optics" % circeVersion,
  "com.nrinaudo" %% "kantan.csv-java8" % kantanVersion,
  "com.nrinaudo" %% "kantan.csv-cats" % kantanVersion,
  "com.nrinaudo" %% "kantan.csv-generic" % kantanVersion,
- "org.json4s" %% "json4s-xml" % "3.6.7",
+ "com.softwaremill.sttp.client" %% "core" % "2.0.6",
+ "com.softwaremill.sttp.client" %% "circe" % "2.0.6",
+ "com.softwaremill.sttp.client" %% "async-http-client-backend-zio" % "2.0.6",
+"org.json4s" %% "json4s-xml" % "3.6.7",
  "org.json4s" %% "json4s-native" % "3.6.7",
  "com.lihaoyi" %% "ammonite-ops" % "2.0.4",
- "org.scalatest" %% "scalatest" % "3.1.0" % Test
+ "com.github.cb372" %% "cats-retry" % "1.1.0",
+
+"org.scalatest" %% "scalatest" % "3.1.1" % Test
 )
 
 testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oF")
@@ -70,7 +80,7 @@ bintrayOrganization := Some("comp-bio-aging")
 
 licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
-dockerBaseImage := 	"oracle/graalvm-ce:19.3.0.2-java11"
+dockerBaseImage := 	"oracle/graalvm-ce:19.3.1-java11"
 
 daemonUserUid in Docker := None
 

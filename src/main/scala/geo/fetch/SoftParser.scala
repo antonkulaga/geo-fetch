@@ -1,9 +1,8 @@
 package geo.fetch
 
-import scala.collection.immutable.ListMap
-
 object SoftParser {
-  import fastparse._, NoWhitespace._
+  import fastparse._
+  import NoWhitespace._
 
   def digit[_: P]: P[Unit] = CharIn("0-9")
   def letter[_: P]: P[Unit] = CharIn("A-Za-z")
@@ -14,7 +13,7 @@ object SoftParser {
 
   def property[_: P]: P[(String, String)] =  "!" ~ name.rep.! ~ equals ~ CharsWhile(_!='\n').rep.! ~ "\n"
 
-  def properties[_: P]: P[Map[String, Seq[String]]] = property.rep.map(ps=>ps.groupBy(_._1).mapValues(_.map(_._2)))
+  def properties[_: P]: P[Map[String, Seq[String]]] = property.rep.map(ps=>ps.groupBy(_._1).map{ case(k,v) =>k->v.map(_._2)})
 
   def softMap[_ :P]: P[Seq[(String, String, Map[String, Seq[String]])]] = (entity ~ properties).rep
 

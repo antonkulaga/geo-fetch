@@ -13,8 +13,7 @@ object Test extends scala.App {
   println("experiment = " + run.run.Experiment)
 
   val e = CommandsBioProject.fetchExperiment(run.run.Experiment, key, "", "", true)
-  //pprint.pprintln(e)
-  println("GOING FURTHER!")
+  pprint.pprintln(e)
   println("GOING FURTHER!")
 
   //val study = e.study

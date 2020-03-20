@@ -29,7 +29,7 @@ class CommandsBioProject extends FetchCommand with CommandSra with CommandsGSM {
     */
   protected def fetchBioJSON(pro: String, output: String)(implicit f: FetchGEO): Json = {
     println(s"fetching bioproject $pro json to ${output} ...")
-    val bioXML = f.fetch_bioproject_xml(pro).unsafeRunSync()
+    val bioXML = f.unsafe(f.fetch_bioproject_xml(pro))
     import io.circe.Xml._
     val bioJs = bioXML.toJson
     if(output.endsWith(".json")) printOrSave(bioXML.toString, output.replace(".json", ".xml"))

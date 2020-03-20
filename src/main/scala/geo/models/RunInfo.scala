@@ -203,7 +203,7 @@ object RunInfo {
         otherDecoder <- OtherRunInfo.otherRunInfo.fromHeader(headers)
       } yield
         // Merge these two decoders into a single RowDecoder
-        RowDecoder.from { row ⇒
+        RowDecoder.from { row =>
           for {
             mainInfo <- mainInfoDecoder.decode(row)
             stats <- statsDecoder.decode(row)

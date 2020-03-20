@@ -9,7 +9,7 @@ Adding to dependencies
 add the following to you build.sbt
 ```scala
 resolvers += sbt.Resolver.bintrayRepo("comp-bio-aging", "main")
-libraryDependencies += "group.aging-research" %% "geo-fetch" % "0.0.13"
+libraryDependencies += "group.aging-research" %% "geo-fetch" % "0.1.0"
 ```
 
 Usage in code

@@ -1,9 +1,6 @@
 package geo.extras
 
-import better.files.File
-import geo.fetch.{FetchGEO}
-
-import scala.util.{Failure, Try}
+import geo.fetch.FetchGEO
 
 
 case class SampleSummarizer(geo: FetchGEO) extends SampleSummarizerLike
@@ -12,17 +9,13 @@ case class SampleSummarizer(geo: FetchGEO) extends SampleSummarizerLike
   */
 trait SampleSummarizerLike {
 
-  import better.files._
+  import better.files.File
+  import geo.fetch._
+  import io.circe.parser._
   import kantan.csv._
   import kantan.csv.ops._
-  import kantan.csv.generic._
-  import io.circe.optics.JsonPath.root
-  import io.circe._
-  import io.circe.parser._
-  import geo.fetch._
 
   import scala.util._
-  import better.files.File
 
 
   implicit val config: CsvConfiguration = rfc.withCellSeparator('\t').withHeader(true)
@@ -109,12 +102,15 @@ trait SampleSummarizerLike {
 
     experimentFolder.children.collect {
       case run if run.isDirectory && run.children.exists(_.name.contains("_transcripts_abundance.tsv")) =>
-        processRun(seriesFolder, experimentFolder, run)(f)
-    }.toVector
+        Try{processRun(seriesFolder, experimentFolder, run)(f)}.recoverWith{case th =>
+          println(s"ERROR in processing runs for ${run} !")
+          println(th.getMessage)
+          Failure(th)}
+    }.collect{ case Success(value) => value}.toVector
   }
 
 
-  protected def processRun(seriesFolder: File, experimentFolder: File, runFolder: File)(implicit f: FetchGEO): AnnotatedRun = {
+  protected def processRun(seriesFolder: File, experimentFolder: File, runFolder: File, fix_quant: Boolean = true)(implicit f: FetchGEO): AnnotatedRun = {
     println(seriesFolder.name + "/" + experimentFolder.name + "/" + runFolder.name)
 
     val runMeta = runFolder / (runFolder.name + "_run.tsv")
@@ -152,8 +148,24 @@ trait SampleSummarizerLike {
                 case Failure(th) => println(s"Failure to parse salmon! ${th}")
                   value
               }
-            case f =>
+            case file =>
               println(s"NO SALMON QUANTIFICATION FOUND FOR ${runFolder}, the quantification is supposed to be inside ${f}!")
+              val wrong = runFolder.name +  "_" + runFolder.name
+              val right = experimentFolder.name +  "_" + runFolder.name
+              val quant_folder2 = runFolder / ("quant_" + seriesFolder.name + "_" + wrong)
+              if(fix_quant &&  quant_folder2.exists){
+                println("trying to fix this, looks like the run is used instead of experiment in the file names!")
+                for {
+                  child <- runFolder.children.toList
+                  if child.name.contains(wrong)
+                }
+                {
+                  val proper = child.name.replace(wrong, right)
+                  println(s"renaming ${child.name} to ${proper}")
+                  child.renameTo(proper)
+                }
+                processRun(seriesFolder, experimentFolder, runFolder, false)(f)
+              }
               value
           }
 
@@ -173,12 +185,17 @@ trait SampleSummarizerLike {
     * @return
     */
   def prepareRunInfo(runMeta: File, series: String, runFolder: File)(implicit f: FetchGEO): AnnotatedRun = {
-
     val runInfo = f.getRunAnnotation(runFolder.name, series)
     val quant_folder = runFolder / ("quant_" + series + "_" + runFolder.parent.name +  "_" + runFolder.name) //TODO FIX CODE DUPLICATION
     val run = quant_folder match {
       case folder if folder.isDirectory && folder.exists && folder.nonEmpty && (folder / "cmd_info.json").exists()=>
         val cmd = folder / "cmd_info.json"
+        val aux_dir = folder / "aux_info"
+        val mapped = if(aux_dir.exists && (aux_dir / "meta_info.json").exists) {
+          val p =  parse((aux_dir / "meta_info.json").contentAsString).map{js=>js.hcursor.downField("percent_mapped").as[String].getOrElse("")}.getOrElse("")
+          println("percent mapped: "+p)
+          p
+        }  else ""
         parseSalmon(cmd).map{ case s =>
           val quant = getPathIf(runFolder)(_.name.contains("quant_"))
           val q = File(quant)//.attributes.lastModifiedTime
@@ -189,6 +206,7 @@ trait SampleSummarizerLike {
             getPathIf(runFolder)(_.name.contains("genes_abundance.tsv")),
             getPathIf(runFolder)(_.name.contains("transcripts_abundance.tsv")),
             quant,
+            mapped,
             s.libType,
             s.numBootstraps,
             modified
