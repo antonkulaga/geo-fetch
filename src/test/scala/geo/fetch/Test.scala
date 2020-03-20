@@ -6,6 +6,8 @@ object Test extends scala.App {
 
   val key = "0a1d74f32382b8a154acacc3a024bdce3709"
   val f = FetchGEO(key)
+
+/*
   val run_id = "SRR1047652" //"SRR5291531"
   val run = f.getSRA(run_id).head
   println("RUN = " +run)
@@ -17,5 +19,12 @@ object Test extends scala.App {
   println("GOING FURTHER!")
 
   //val study = e.study
+
+ */
+
+  val e = CommandsBioProject.fetchExperiment("DRX081510", key, "", "", true)
+  pprint.pprintln(e)
+  println("GOING FURTHER!")
+
 
 }

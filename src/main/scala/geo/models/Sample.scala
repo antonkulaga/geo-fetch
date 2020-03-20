@@ -133,7 +133,7 @@ trait GSMLike {
 
 object BioProject {
 
-  val withUpperCaseKeys: String ⇒ String =  str => str.toUpperCase
+  val withUpperCaseKeys: String => String =  str => str.toUpperCase
   implicit val customConfig: Configuration = Configuration.default.withDefaults.copy(transformMemberNames = withUpperCaseKeys)
 
 

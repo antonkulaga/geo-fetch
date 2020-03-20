@@ -88,11 +88,11 @@ trait SampleSummarizerLike {
       println("cannot find " + experimentFolder.name + ".json, creating it from scratch!")
       Try {
         val uname = experimentFolder.name.toUpperCase
-        if (uname.startsWith("PRJN") || uname.startsWith("SRX") || uname.startsWith("ERX"))
-          geo.cli.MainCommand.fetchBioProject(experimentFolder.name, f.apiKey, experimentFolder.pathAsString + "/" + experimentFolder.name + ".json", experimentFolder.pathAsString + "/" + experimentFolder.name + "_runs.tsv", true)
-        else
+        if(uname.startsWith("GSM"))
           geo.cli.MainCommand.fetchGSM(experimentFolder.name, f.apiKey, experimentFolder.pathAsString + "/" + experimentFolder.name + ".json", experimentFolder.pathAsString + "/" + experimentFolder.name + "_runs.tsv", true)
-
+        else
+        //if (uname.startsWith("PRJN") || uname.startsWith("SRX") || uname.startsWith("ERX"))
+          geo.cli.MainCommand.fetchBioProject(experimentFolder.name, f.apiKey, experimentFolder.pathAsString + "/" + experimentFolder.name + ".json", experimentFolder.pathAsString + "/" + experimentFolder.name + "_runs.tsv", true)
       } match {
         case Failure(th) => println("could not create Experiment because of: " + th.toString)
         case _ => println(experimentFolder.name + ".json" + " successfully created!")
