@@ -1,6 +1,7 @@
 package geo.fetch
 
 import geo.cli.CommandsBioProject
+import zio.URIO
 
 object Test extends scala.App {
 
@@ -22,9 +23,15 @@ object Test extends scala.App {
 
  */
 
-  val e = CommandsBioProject.fetchExperiment("DRX081510", key, "", "", true)
-  pprint.pprintln(e)
-  println("GOING FURTHER!")
+  //val e = CommandsBioProject.fetchExperiment("DRX081510", key, "", "", true)
+
+  val gsm = "GSM2740707"//"GSM2740712"
+  //gsm --key 0a1d74f32382b8a154acacc3a024bdce3709 -e --output GSM2740712.json --runs GSM2740712_runs.tsv  GSM2740712
+  //CommandsBioProject.fetchGSM(gsm, "0a1d74f32382b8a154acacc3a024bdce3709", "GSM2740712.json", "GSM2740712_runs.tsv", false)
+  //val r = f.getGSM(gsm, true)
+  val query = f.get_query_soft(id = gsm)
+  val res = f.runtime.unsafeRunTask(query)
+  println(res)
 
 
 }

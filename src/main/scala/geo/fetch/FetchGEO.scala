@@ -7,7 +7,7 @@ import io.circe.Decoder.Result
 import io.circe.Xml._
 import io.circe._
 import io.circe.optics.JsonPath.root
-import sttp.client._
+import sttp.client3._
 import zio._
 
 import scala.util.{Failure, Success, Try}
@@ -75,11 +75,11 @@ trait FetchGeoJSON extends FetchGeoXML with FetchJSON {
 
   //def fetchGSM(gsm: String): Task[Result[MINiML.Container]] = get_gsm_json(gsm).map(_.as[MINiML.Container])
 
-  def get_query_json(target: String, id: String): Task[Json] = get_query_xml(target, id).map(_.toJson)
-  def get_gse_json(id: String): Task[Json] = get_query_json("gse", id)
-  def get_gsm_json(id: String): Task[Json] = get_query_json("gsm", id)
+  def get_query_json(id: String,target: String = "self"): Task[Json] = get_query_xml(id, target).map(_.toJson)
+  def get_gse_json(id: String): Task[Json] = get_query_json(id, "gse")
+  def get_gsm_json(id: String): Task[Json] = get_query_json(id, "gsm")
 
-  def get_query_soft(target: String, id: String): Task[Json] = get_query_xml(target, id).map(_.toJson)
+  def get_query_soft(id: String, target: String = "self"): Task[Json] = get_query_xml(id, target).map(_.toJson)
 
 
   def getSOFT(id: String, target: String = "self"): Parsed[Seq[(String, String, Map[String, Seq[String]])]] =  {
@@ -157,7 +157,7 @@ trait FetchGeoXML extends Fetch {
       case Right(s)=> s
       case Left(r) => throw new Exception(s"request ${r.toString} gave non string entity!")
     }
-    val resp = request.send()
+    val resp = request.send(sttpBackend)
       //.retry(Schedule.recurs(10).addDelay(i=> i second))
       .map(r => r.body)
     resp
@@ -173,13 +173,18 @@ trait FetchGeoXML extends Fetch {
      */
   }
 
-  def get_query_xml(id: String, target: String): Task[Elem] = get_query(id, target, "xml", "full").map(r=> scala.xml.XML.loadString(r))
+  def get_query_xml(id: String, target: String = "self"): Task[Elem] = get_query(id, target, "xml", "full")
+    .flatMap { case str =>
+      if(str.contains("was deleted by the"))
+      ZIO.fail(new Exception(s"${id} has been deleted!"))
+      else Task.apply(scala.xml.XML.loadString(str))
+    }
 
-  def get_query_text(id: String, target: String): String = {
+  def get_query_text(id: String, target: String = "self"): String = {
     val form = "text"
     val view = "full"
     val url = parseUri(s"https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${id}&targ=${target}&form=${form}&view=${view}${apiKeyAddition}")
-    unsafe(quickRequest.get(url).send().map(_.body))
+    unsafe(quickRequest.get(url).send(sttpBackend).map(_.body))
     //requests.get(s"https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${id}&targ=${target}&form=${form}&view=${view}${apiKeyAddition}").text()
   }
 

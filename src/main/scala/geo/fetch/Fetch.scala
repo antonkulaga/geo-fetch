@@ -2,15 +2,15 @@ package geo.fetch
 import geo.models.RunInfo
 import org.asynchttpclient.{AsyncHttpClient, DefaultAsyncHttpClientConfig}
 import zio.internal.Platform
-
 import io.circe.Xml._
 import io.circe._
-import sttp.client.asynchttpclient.zio._
+import sttp.client3.asynchttpclient.zio._
 import sttp.model.Uri
 import zio._
 
 import scala.xml.Elem
 import org.asynchttpclient.Dsl.asyncHttpClient
+import sttp.client3.asynchttpclient
 
 trait FetchJSON extends FetchXML {
 
@@ -56,7 +56,7 @@ trait FetchJSON extends FetchXML {
   def xml2json(xml: Task[Elem]): Task[Json] = xml.map(e=>e.toJson)
 }
 
-import sttp.client._
+import sttp.client3._
 import zio.duration._
 import zio.{Schedule, ZIO}
 
@@ -103,7 +103,7 @@ trait FetchXML extends Fetch {
     val db = "sra"
     val returnType = "runinfo"
     val url = parseUri(s"http://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?save=efetch&db=${db}&rettype=${returnType}&term=${id}${apiKeyAddition}")
-    quickRequest.get(url).mapResponse(_.replace("\r\n", "\n"))  .send().map(_.body)
+    quickRequest.get(url).mapResponse(_.replace("\r\n", "\n")).send(sttpBackend).map(_.body)
 
   }
   def get_sra_runinfo(id: String) = unsafe(fetch_sra_runinfo(id))
@@ -136,7 +136,7 @@ trait FetchXML extends Fetch {
       case Right(s)=> scala.xml.XML.loadString(s)
       case Left(r) => throw new Exception(s"request ${r.toString} error!")
     }
-    val resp: Task[Elem]= request.send()
+    val resp: Task[Elem]= request.send(sttpBackend)
       .map(r => r.body)
       //.retry(Schedule.recurs(10).addDelay(i=> i second))
     resp
@@ -158,14 +158,17 @@ trait Fetch {
 
   protected val client: AsyncHttpClient = asyncHttpClient(this.clientConfig)
 
-  implicit val sttpBackend: SttpBackend[Task, Nothing, NothingT] = AsyncHttpClientZioBackend.usingClient(client)
-
+  implicit val sttpBackend = AsyncHttpClientZioBackend.usingClient(zio.Runtime.default, client) //UPD
+  //: SttpBackend[Task, Nothing, WebSocketHandler]
 
   //type Task[T] = ZTask[SttpClient, Throwable, T]
   val runtime = Runtime(client, Platform.default)
 
   def unsafe[A](task: =>ZIO[AsyncHttpClient, Throwable, A ]): A = {
-    runtime.unsafeRunTask(task.retry(Schedule.recurs(10)))
+    //runtime.unsafeRunTask(task.retry((Schedule.recurs(10)))) //UPD
+    //runtime.unsafeRunTask(task.retry((Schedule.recurs(10))))
+    runtime.unsafeRunTask(task.retryN(10))
+    //runtime.unsafeRunTask(task.retry(Schedule.recurs(10)))
   }
   //type Env = Any with Clock with SttpClient
 
