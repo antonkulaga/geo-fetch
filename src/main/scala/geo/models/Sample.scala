@@ -157,7 +157,7 @@ object BioProject {
   object ExperimentSet {
     @ConfiguredJsonCodec case class Experiment(@JsonKey("accession") accession: String,
                                                @JsonKey("alias") alias: String,
-                                               identifiers: Json,
+                                               identifiers: IDENTIFIERS,
                                                title: String,
                                                study_ref: Option[Json],
                                                design: Design,
@@ -175,7 +175,7 @@ object BioProject {
                       @JsonKey("accession") accession: String,
                       @JsonKey("alias") alias: String = "",
                       @JsonKey("center_name") centerName: String = "",
-                      identifiers: Json,
+                      identifiers: IDENTIFIERS,
                       descriptor: StudyDescriptor
                       //descriptor: Json
 
@@ -241,6 +241,7 @@ object BioProject {
                                             sample_links: Option[Json],
                                             sample_attributes: SampleAttributes
                                           )
+
     /*
  "SAMPLE" : {
 [info]         "accession" : "SRS4436074",
@@ -312,6 +313,43 @@ object BioProject {
 [info]       },
      */
 
+    @ConfiguredJsonCodec case class SRAFile(
+    @JsonKey("cluster") cluster: String,
+    @JsonKey("filename") filename: String,
+      @JsonKey("size") size: String, @JsonKey("date") date: String, @JsonKey("md5") md5: String,
+    @JsonKey("semantic_name") semantic_name: String, @JsonKey("supertype") supertype: String, @JsonKey("Alternatives") Alternatives: Json)
+
+    @ConfiguredJsonCodec case class SRAFiles(@JsonKey("SRAFile") files: Vector[Json])
+
+    /*
+    [info]         "IDENTIFIERS" : {
+[info]           "PRIMARY_ID" : "SRS4436074",
+[info]           "EXTERNAL_ID" : "SAMN11044060",
+[info]           "namespace" : "BioSample"
+[info]         },
+     */
+    @ConfiguredJsonCodec case class IDENTIFIERS(primary_id: String, external_id: Option[String], namespace: Option[String])
+    @ConfiguredJsonCodec case class Run(@JsonKey("accession") accession: String,
+                                        @JsonKey("alias") alias: String,
+                                        @JsonKey("total_spots") total_spots: String,
+                                        @JsonKey("total_bases") total_bases: String,
+                                        @JsonKey("size") size: String,
+                                        @JsonKey("load_done") load_done: String,
+                                        @JsonKey("published") published: String,
+                                        @JsonKey("is_public") is_public: String,
+                                        @JsonKey("cluster_name") cluster_name: String,
+                                        @JsonKey("static_data_available") static_data_available: String,
+                                        identifiers: IDENTIFIERS,
+                                        @JsonKey("refname") refname: String,
+                                        @JsonKey("Pool") Pool: Json,
+                                        @JsonKey("SRAFiles") SRAFiles: SRAFiles,
+                                        @JsonKey("CloudFiles") CloudFiles: Json,
+                                        @JsonKey("Statistics") statistics: Json,
+                                        @JsonKey("Base") base: Option[Json])
+
+    @ConfiguredJsonCodec case class RunSet(run: Run)
+
+
     @ConfiguredJsonCodec case class ExperimentPackage(
                                                        experiment: Experiment,
                                                        submission: Json,
@@ -319,7 +357,7 @@ object BioProject {
                                                        study: Study,
                                                        sample: Sample,
                                                        @JsonKey("Pool") pool: Json,
-                                                       run_set: Json)
+                                                       run_set: RunSet)
   }
   import ExperimentSet._
 

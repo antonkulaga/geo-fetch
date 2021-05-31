@@ -8,6 +8,7 @@ object Main extends CommandApp(
   main = {
     MainCommand.mainCommand.map{ _=>
       //just to run it
+      System.exit(0)
     }
   }
 
