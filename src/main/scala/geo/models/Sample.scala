@@ -340,7 +340,7 @@ object BioProject {
                                         @JsonKey("cluster_name") cluster_name: String,
                                         @JsonKey("static_data_available") static_data_available: String,
                                         identifiers: IDENTIFIERS,
-                                        @JsonKey("refname") refname: String,
+                                        @JsonKey("refname") refname: Option[String],
                                         @JsonKey("Pool") Pool: Json,
                                         @JsonKey("SRAFiles") SRAFiles: SRAFiles,
                                         @JsonKey("CloudFiles") CloudFiles: Json,
