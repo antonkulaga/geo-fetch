@@ -83,6 +83,9 @@ trait CommandsIndex extends FetchCommand with SampleSummarizerLike {
           }
         }
 
+      case Some(_) =>
+        println("species_indexes is not a folder but just a File")
+
       case None =>
         println("As species index")
     }

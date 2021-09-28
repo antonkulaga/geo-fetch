@@ -50,7 +50,8 @@ case class FetchGEO(apiKey: String = "",  retries: Int = 10) extends FetchGeoJSO
     val att = sample.sample_attributes.attributes
     val age = att.getOrElse("age", "")
     val sex = att.get("sex").orElse(att.get("gender")).getOrElse(runInfo.subject.Sex)
-    val characteristics: String = (att ++ subject.asMap.filter(_._2!="")).map(a=>a._1+":" + a._2).mkString(";")
+    val characteristicsMap = (att ++ subject.asMap.filter(_._2!="")).map{case (key, value)=> (key.toString, value.toString)}
+    val characteristics: String = characteristicsMap.map{ case (key, value) => key + ":" + value}.mkString(";")
     val source: String = att.get("tissue").orElse(att.get("cell type")).orElse(att.get("cell_type")).orElse(att.get("source_name")).getOrElse(subject.Body_Site)
 
 
